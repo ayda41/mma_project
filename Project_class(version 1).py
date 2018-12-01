@@ -153,8 +153,8 @@ class PersonalLedger():
         self.weeklyAmount = 0
         self.weeklyAmountPerCategory = pd.DataFrame({"total_amount": [np.nan],
                                         "category": [np.nan]},
-                                        dtype = 'object')
-
+                                        dtype = 'object') #modify with index [year, nb of week in year]  datetime.date(2019, 1, 7).isocalendar()[1]
+        #add a monthlyAmount
         
     def add_transaction(self, mytransac):
         self.persoLedger = pd.concat([self.persoLedger, mytransac], ignore_index = True)
@@ -170,7 +170,7 @@ class PersonalLedger():
         week_amount.loc[week_amount['date'].isin(week_array)]
         amount = week_amount['total_amount'].sum()
         self.weeklyAmount = amount
-    
+        
     def update_weeklyAmountPerCategory(self):
         current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
         week_array = []
@@ -180,7 +180,7 @@ class PersonalLedger():
         week_amount = self.persoLedger[['date', 'total_amount', 'category']]
         week_amount.date = week_amount.date[0:8]
         week_amount.loc[week_amount['date'].isin(week_array)]
-        amount_per_category = week_amount[['total_amount', 'category']]
+        amount_per_category = week_amount[['category', 'total_amount']]
         self.weeklyAmountPerCategory = amount_per_category
         
     def return_weekly_report(self):
