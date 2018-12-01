@@ -122,6 +122,7 @@ class User():
             if user not in self.friends and user.id != self.id:
                 self.friends.append(user)
                 self.balance[user.name] = 0
+#the engine adds the project to the users' projects list
 
     def add_friends(self, friend):
         self.friends.append(friend)
