@@ -184,7 +184,7 @@ class PersonalLedger():
         week_amount.loc[week_amount['date'].isin(week_array)]
         amount = week_amount['total_amount'].sum()
         self.weeklyAmount = amount
-    
+        
     def update_weeklyAmountPerCategory(self):
         current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
         week_array = []
