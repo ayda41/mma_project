@@ -85,3 +85,18 @@ class User():
 
     def add_friends(self, friend):
         self.friends.append(friend)
+ def update_balance(self, balance: dict):
+        for friend, amount in balance.items():
+            self.balance[friend] = self.balance[friend] + amount
+            
+    def print_projects(self):
+        l = []
+        for i in self.user_projects:
+            l.append(i.project_name)
+        return l 
+    
+    def print_friends(self):
+        l = []
+        for i in self.friends:
+            l.append(i.name)
+        return l 
