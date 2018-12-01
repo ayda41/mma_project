@@ -66,46 +66,36 @@ def create_personal_transaction(user, amount, description, category):
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
     
-
 class Project():
     def __init__(self, name, users):
         self.project_name = name
         self.project_users = users
-        self.ledger = []
-        self.balance = {user.name: 0 for user in users}
         hash_id = name
         for i in users:
             hash_id += i.name
-        self.project_id = hash(hash_id)
-        
+        self.id= hash(hash_id)
+        self.ledger = pd.DataFrame({"project_id": self.id, 
+                                    "transac_id": [np.nan],
+                                    "date": [np.nan], 
+                                    "total_amount": [np.nan],
+                                    "people_name": [np.nan], 
+                                    "payer_name": [np.nan], 
+                                    "method": [np.nan],
+                                    "description": [np.nan],
+                                    "category": [np.nan]},
+                                    dtype = 'object')
+        self.balance = {user.name: 0 for user in users}
     
-    # @property
-    # def project_id(self):
-    #     return self._project_id
-    # 
-    # @property
-    # def ledger(self):
-    #     return self._ledger
-    # 
-    # @property
-    # def balance(self):
-    #     return self._balance
-    #     
-    # # @balance.setter
-    # # def balance(self, transaction):
         
     def change_name(self, new_name):
         self._project_name = new_name
         
     def add_transaction(self, transac):
-        self.ledger.append(transac)
+        self.ledger = pd.concat([self.ledger, transac], ignore_index = True)
         
-    def update_ledger(self, balance: dict):
+    def update_balance(self, balance):
         for user, amount in balance.items():
             self.balance[user.name] = self.balance[user.name] + amount
-    
-    #The project ledger is updated through the engine.
-    
 class User():
     def __init__(self, name, email):
         self.name = name
