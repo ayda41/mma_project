@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 """
 Spyder Editor
@@ -91,3 +92,5 @@ class User():
         for i in self.friends:
             l.append(i.name)
         return l 
+
+
