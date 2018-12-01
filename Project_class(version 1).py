@@ -49,6 +49,19 @@ def create_transaction(project, amount, people, payer, method, description, cate
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
+        
+def create_personal_transaction(user, amount, description, category):
+    date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
+    #create the transac id using a hash function with the project id the date and the amount
+    hash_id = str(user.id) + str(date) + str(amount)
+    transac_id = hash(hash_id)
+    transac = pd.DataFrame({"transac_id": transac_id,
+                            "date": date, 
+                            "total_amount": amount, 
+                            "description": description,
+                            "category": [category]})
+    t = transac#.drop(index = 1)
+    user.persoExp.add_transaction(t)
 
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
