@@ -114,7 +114,7 @@ class User():
         self.friends = []
         self.user_projects = []
         self.id = hash(name + email)
-        
+        self.persoExp = PersonalLedger()
     
     def add_project(self, project : Project):
         self.user_projects.append(project)
