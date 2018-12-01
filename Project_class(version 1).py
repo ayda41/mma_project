@@ -18,7 +18,6 @@ import datetime
 #The id can be generated through a hash function using the project id, the date and the amount.
 #The date is "%m-%d-%y-%H-%M"
 categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
-
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
@@ -50,7 +49,10 @@ def create_transaction(project, amount, people, payer, method, description, cate
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
-        
+
+#need a function that takes the balance of a project, computes which user owes who 
+#and updates the owed balance of each user belonging to the project. 
+
 def create_personal_transaction(user, amount, description, category):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
@@ -63,8 +65,6 @@ def create_personal_transaction(user, amount, description, category):
                             "category": [category]})
     t = transac#.drop(index = 1)
     user.persoExp.add_transaction(t)
-#need a function that takes the balance of a project, computes which user owes who 
-#and updates the owed balance of each user belonging to the project. 
     
 
 class Project():
