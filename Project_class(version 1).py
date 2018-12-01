@@ -24,3 +24,22 @@ class Project():
                                     dtype = 'object')
         self.balance = {user.name: 0 for user in users}
     
+class User():
+    def __init__(self, name, email):
+        self.name = name
+        self.email = email
+        self.balance = {}
+        self.friends = []
+        self.user_projects = []
+        self.id = hash(name + email)
+        
+    
+    def add_project(self, project : Project):
+        self.user_projects.append(project)
+        for user in project.project_users:
+            if user not in self.friends and user.id != self.id:
+                self.friends.append(user)
+                self.balance[user.name] = 0
+
+    def add_friends(self, friend):
+        self.friends.append(friend)
