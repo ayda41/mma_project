@@ -23,6 +23,16 @@ class Project():
                                     "category": [np.nan]},
                                     dtype = 'object')
         self.balance = {user.name: 0 for user in users}
+        
+    def change_name(self, new_name):
+        self._project_name = new_name
+        
+    def add_transaction(self, transac):
+        self.ledger = pd.concat([self.ledger, transac], ignore_index = True)
+        
+    def update_balance(self, balance):
+        for user, amount in balance.items():
+            self.balance[user.name] = self.balance[user.name] + amount
     
 class User():
     def __init__(self, name, email):
