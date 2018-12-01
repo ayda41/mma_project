@@ -18,6 +18,7 @@ import datetime
 #The id can be generated through a hash function using the project id, the date and the amount.
 #The date is "%m-%d-%y-%H-%M"
 categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
+
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
