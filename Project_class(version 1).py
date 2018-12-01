@@ -93,4 +93,31 @@ class User():
             l.append(i.name)
         return l 
 
+class PersonalLedger():
+    def __init__(self):
+        self.persoLedger = pd.DataFrame({"transac_id": [np.nan],
+                                        "date": [np.nan], 
+                                        "total_amount": [np.nan],
+                                        "description": [np.nan],
+                                        "category": [np.nan]},
+                                        dtype = 'object')
+        self.weeklyAmount = 0
+        self.weeklyAmountPerCategory = pd.DataFrame({"total_amount": [np.nan],
+                                        "category": [np.nan]},
+                                        dtype = 'object')
 
+        
+    def add_transaction(self, mytransac):
+        self.persoLedger = pd.concat([self.persoLedger, mytransac], ignore_index = True)
+    
+    def update_weeklyAmount(self):
+        current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
+        week_array = []
+        for i in reversed(range(0,7)):
+            day = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime("%m-%d-%y")
+            week_array.append(day)
+        week_amount = self.persoLedger[['date', 'total_amount']]
+        week_amount.date = week_amount.date[0:8]
+        week_amount.loc[week_amount['date'].isin(week_array)]
+        amount = week_amount['total_amount'].sum()
+        self.weeklyAmount = amount
