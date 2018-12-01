@@ -18,7 +18,6 @@ import datetime
 #The id can be generated through a hash function using the project id, the date and the amount.
 #The date is "%m-%d-%y-%H-%M"
 categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
-
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
@@ -50,7 +49,10 @@ def create_transaction(project, amount, people, payer, method, description, cate
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
-        
+
+#need a function that takes the balance of a project, computes which user owes who 
+#and updates the owed balance of each user belonging to the project. 
+
 def create_personal_transaction(user, amount, description, category):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
@@ -63,21 +65,27 @@ def create_personal_transaction(user, amount, description, category):
                             "category": [category]})
     t = transac#.drop(index = 1)
     user.persoExp.add_transaction(t)
-#need a function that takes the balance of a project, computes which user owes who 
-#and updates the owed balance of each user belonging to the project. 
     
 
 class Project():
     def __init__(self, name, users):
         self.project_name = name
         self.project_users = users
-        self.ledger = []
-        self.balance = {user.name: 0 for user in users}
         hash_id = name
         for i in users:
             hash_id += i.name
-        self.project_id = hash(hash_id)
-        
+        self.id= hash(hash_id)
+        self.ledger = pd.DataFrame({"project_id": self.id, 
+                                    "transac_id": [np.nan],
+                                    "date": [np.nan], 
+                                    "total_amount": [np.nan],
+                                    "people_id": [np.nan], 
+                                    "payer_id": [np.nan], 
+                                    "method": [np.nan],
+                                    "description": [np.nan],
+                                    "category": [np.nan]},
+                                    dtype = 'object')
+        self.balance = {user.name: 0 for user in users}
     
     # @property
     # def project_id(self):
@@ -87,6 +95,9 @@ class Project():
     # def ledger(self):
     #     return self._ledger
     # 
+    # @ledger.setter
+    # def ledger(self, transac):
+    #     self.ledger.append(transac)
     # @property
     # def balance(self):
     #     return self._balance
@@ -98,9 +109,9 @@ class Project():
         self._project_name = new_name
         
     def add_transaction(self, transac):
-        self.ledger.append(transac)
+        self.ledger = pd.concat([self.ledger, transac], ignore_index = True)
         
-    def update_ledger(self, balance: dict):
+    def update_balance(self, balance):
         for user, amount in balance.items():
             self.balance[user.name] = self.balance[user.name] + amount
     
@@ -111,11 +122,19 @@ class User():
         self.name = name
         self.email = email
         self.balance = {}
+#negative balance -> money is owed to user by others
+
         self.friends = []
         self.user_projects = []
         self.id = hash(name + email)
+
+        
+ #adding a new project to the Project list through the engine:
+
+
         self.persoExp = PersonalLedger()
     
+
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
@@ -170,7 +189,7 @@ class PersonalLedger():
         week_amount.loc[week_amount['date'].isin(week_array)]
         amount = week_amount['total_amount'].sum()
         self.weeklyAmount = amount
-    
+        
     def update_weeklyAmountPerCategory(self):
         current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
         week_array = []
