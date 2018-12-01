@@ -71,13 +71,21 @@ class Project():
     def __init__(self, name, users):
         self.project_name = name
         self.project_users = users
-        self.ledger = []
-        self.balance = {user.name: 0 for user in users}
         hash_id = name
         for i in users:
             hash_id += i.name
-        self.project_id = hash(hash_id)
-        
+        self.id= hash(hash_id)
+        self.ledger = pd.DataFrame({"project_id": self.id, 
+                                    "transac_id": [np.nan],
+                                    "date": [np.nan], 
+                                    "total_amount": [np.nan],
+                                    "people_id": [np.nan], 
+                                    "payer_id": [np.nan], 
+                                    "method": [np.nan],
+                                    "description": [np.nan],
+                                    "category": [np.nan]},
+                                    dtype = 'object')
+        self.balance = {user.name: 0 for user in users}
     
     # @property
     # def project_id(self):
@@ -87,6 +95,9 @@ class Project():
     # def ledger(self):
     #     return self._ledger
     # 
+    # @ledger.setter
+    # def ledger(self, transac):
+    #     self.ledger.append(transac)
     # @property
     # def balance(self):
     #     return self._balance
@@ -98,13 +109,13 @@ class Project():
         self._project_name = new_name
         
     def add_transaction(self, transac):
-        self.ledger.append(transac)
+        self.ledger = pd.concat([self.ledger, transac], ignore_index = True)
         
-    def update_ledger(self, balance: dict):
+    def update_balance(self, balance):
         for user, amount in balance.items():
             self.balance[user.name] = self.balance[user.name] + amount
     
-    #The project ledger is updated through the engine
+    #The project ledger is updated through the engine.
     
 class User():
     def __init__(self, name, email):
