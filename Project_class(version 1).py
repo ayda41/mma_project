@@ -4,6 +4,38 @@ Spyder Editor
 
 This is a temporary script file.
 """
+def create_transaction(project, amount, people, payer, method, description, category, *args):
+    date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
+    #create the transac id using a hash function with the project id the date and the amount
+    hash_id = str(project.id) + str(date) + str(amount)
+    transac_id = hash(hash_id)
+    people_id = []
+    for i in people:
+        people_id.append(i.id)
+    transac = pd.DataFrame({"project_id": project.id, 
+                            "transac_id": transac_id,
+                            "date": date, 
+                            "total_amount": amount, 
+                            "people_id": people_id,
+                            "payer_id": payer.id, 
+                            "method": method, 
+                            "description": description,
+                            "category": category})
+    t = transac#.drop(index = 1)
+    project.add_transaction(t)
+    if method == 'equal':
+        balance = {}
+        split = amount/len(people_id)
+        for i in people:
+            if i != payer:
+                balance.update({i: split})
+        balance.update({payer: -amount})
+        project.update_balance(balance)
+    if method == 'custom':  #still need work
+        balance = args[0]
+        del balance[payer]
+        project.update_balance(balance)
+
 class Project():
     def __init__(self, name, users):
         self.project_name = name
