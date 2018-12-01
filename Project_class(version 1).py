@@ -100,9 +100,11 @@ class User():
     def __init__(self, name, email):
         self.name = name
         self.email = email
-        self.balance = {}   #negative balance indicates money is owed to user by others
+        self.balance = {} 
+        #negative balance indicates money is owed to user by others
         self.friends = []
         self.user_projects = []
+        
         self.id = hash(name + email)
         self.persoExp = PersonalLedger()
     
