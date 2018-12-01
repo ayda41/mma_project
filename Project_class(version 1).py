@@ -24,15 +24,15 @@ def create_transaction(project, amount, people, payer, method, description, cate
     #create the transac id using a hash function with the project id the date and the amount
     hash_id = str(project.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
-    people_id = []
+    people_name = []
     for i in people:
-        people_id.append(i.id)
+        people_name.append(i.name)
     transac = pd.DataFrame({"project_id": project.id, 
                             "transac_id": transac_id,
                             "date": date, 
                             "total_amount": amount, 
-                            "people_id": people_id,
-                            "payer_id": payer.id, 
+                            "people_name": people_name,
+                            "payer_name": payer.name, 
                             "method": method, 
                             "description": description,
                             "category": category})
@@ -40,17 +40,22 @@ def create_transaction(project, amount, people, payer, method, description, cate
     project.add_transaction(t)
     if method == 'equal':
         balance = {}
-        split = amount/len(people_id)
+        split = amount/len(people_name)
         for i in people:
-            if i != payer:
-                balance.update({i: split})
-        balance.update({payer: -amount})
+            balance.update({i: split})
+        if payer in people:
+            balance[payer] = balance[payer] - amount
+        else:
+            balance.update({payer: - amount})
         project.update_balance(balance)
-    if method == 'custom':  #still need work
+    if method == 'unequal':  #still need work
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
-        
+
+#need a function that takes the balance of a project, computes which user owes who 
+#and updates the owed balance of each user belonging to the project. 
+
 def create_personal_transaction(user, amount, description, category):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
