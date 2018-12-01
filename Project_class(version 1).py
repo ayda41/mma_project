@@ -49,19 +49,6 @@ def create_transaction(project, amount, people, payer, method, description, cate
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
-        
-def create_personal_transaction(user, amount, description, category):
-    date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-    #create the transac id using a hash function with the project id the date and the amount
-    hash_id = str(user.id) + str(date) + str(amount)
-    transac_id = hash(hash_id)
-    transac = pd.DataFrame({"transac_id": transac_id,
-                            "date": date, 
-                            "total_amount": amount, 
-                            "description": description,
-                            "category": [category]})
-    t = transac#.drop(index = 1)
-    user.persoExp.add_transaction(t)
 
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
@@ -113,7 +100,7 @@ class User():
         self.friends = []
         self.user_projects = []
         self.id = hash(name + email)
-        self.persoExp = PersonalLedger()
+        
     
     def add_project(self, project : Project):
         self.user_projects.append(project)
@@ -169,3 +156,18 @@ class PersonalLedger():
         week_amount.loc[week_amount['date'].isin(week_array)]
         amount = week_amount['total_amount'].sum()
         self.weeklyAmount = amount
+    
+    def update_weeklyAmountPerCategory(self):
+        current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
+        week_array = []
+        for i in reversed(range(0,7)):
+            day = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime("%m-%d-%y")
+            week_array.append(day)
+        week_amount = self.persoLedger[['date', 'total_amount', 'category']]
+        week_amount.date = week_amount.date[0:8]
+        week_amount.loc[week_amount['date'].isin(week_array)]
+        amount_per_category = week_amount[['total_amount', 'category']]
+        self.weeklyAmountPerCategory = amount_per_category
+        
+    def return_weekly_report(self):
+        return self.weeklyAmountPerCategory.groupby(['category'])[['total_amount']].sum()
