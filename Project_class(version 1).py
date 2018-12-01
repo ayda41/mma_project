@@ -104,7 +104,7 @@ class Project():
         for user, amount in balance.items():
             self.balance[user.name] = self.balance[user.name] + amount
     
-    #The project ledger is updated through the engine.
+    #The project ledger is updated through the engine
     
 class User():
     def __init__(self, name, email):
@@ -117,15 +117,14 @@ class User():
         self.user_projects = []
         self.id = hash(name + email)
         
-    
+ #adding a new project to the Project list through the engine:
+
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
             if user not in self.friends and user.id != self.id:
                 self.friends.append(user)
                 self.balance[user.name] = 0
-
-   #the engine adds the project to the users' projects list
 
     def add_friends(self, friend):
         self.friends.append(friend)
