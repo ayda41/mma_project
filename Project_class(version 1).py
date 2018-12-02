@@ -3,7 +3,6 @@
 """
 Spyder Editor
 
-This is a temporary script file.
 """
 import time
 import datetime
@@ -182,7 +181,7 @@ class User():
         self.id = hash(name + email)
         self.persoExp = PersonalLedger()
     
-#adding a new project to the Project list through the engine:
+    #adding a new project to the Project list through the engine:
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
@@ -190,7 +189,7 @@ class User():
                 self.friends.append(user)
                 self.balance[user.name] = 0
    
-def add_friends(self, friend):
+    def add_friends(self, friend):
         self.friends.append(friend)
    
     def update_balance(self, balance: dict):
@@ -296,3 +295,7 @@ class PersonalLedger():
 
     def return_transactions(self):
         return self.persoLedger[["date", "total_amount", "description","category"]].copy().drop([0])
+    
+    def repr_ledger(self):
+        rep = self.persoLedger.drop([0])
+        return rep 
