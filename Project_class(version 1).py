@@ -23,21 +23,17 @@ def create_transaction(project, amount, people, payer, method, description, cate
     hash_id = str(project.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
     people_name = []
+    S=[]
+    for i in args:
+        S.append(float(i))
     for i in people:
         people_name.append(i.name)
-    transac = pd.DataFrame({"project_id": project.id, 
-                            "transac_id": transac_id,
-                            "date": date, 
-                            "total_amount": amount, 
-                            "people_name": [people_name],
-                            "payer_name": payer.name, 
-                            "method": method, 
-                            "description": description,
-                            "category": category})
-    project.add_transaction(transac)
+
     if method == 'equal':
         balance = {}
         split = amount/len(people_name)
+        #Split=list(args)
+        Split = np.array([split]*len(people_name))
         for i in people:
             balance.update({i: split})
         if payer in people:
@@ -45,9 +41,17 @@ def create_transaction(project, amount, people, payer, method, description, cate
         else:
             balance.update({payer: - amount})
         project.update_balance(balance)
+        
     if method == 'unequal':  #still need work
-        balance = args[0]
-        del balance[payer]
+        balance = {}
+        Split=S
+        balance.update({payer: -amount})
+        for i in people:
+            balance.update({i: Split[people.index(i)]})
+        if payer in people:
+            balance[payer] = balance[payer] - Split[people.index(i)]
+        else:
+            balance.update({payer: - amount})
         project.update_balance(balance)
     push_balance_project_user(balance)
 #need a function that takes the balance of a project, computes which user owes who 
