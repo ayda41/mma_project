@@ -140,13 +140,17 @@ class Project():
                                     "payer_name": [np.nan], 
                                     "method": [np.nan],
                                     "description": [np.nan],
-                                    "category": [np.nan]},
+                                    "category": [np.nan],
+                                    "Split": [np.nan]},
                                     dtype = 'object')
         self.balance = {user: 0 for user in users}
     
         
     def change_name(self, new_name):
         self._project_name = new_name
+    
+    def Name_project(self):
+        return self.project_name
         
     def add_transaction(self, transac):
         self.ledger = pd.concat([self.ledger, transac], ignore_index = True)
