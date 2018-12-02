@@ -385,12 +385,15 @@ class User():
             Weekly_graph_categories[int(datetime.date(datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').day).isocalendar()[1])][(row['category'])]+= row['total_amount']
         else:
             pass
-        
+    Weekly_graph_categories_in_month={} 
+    k=1
     for i in range((datetime.date(year,int(months[month]),1).isocalendar()[1]),(datetime.date(year,months[month],calendar.monthrange(year,months[month])[1]).isocalendar()[1])+1):
         print(Weekly_graph_categories[i])
+        Weekly_graph_categories_in_month[k]=Weekly_graph_categories[i]
+        k=k+1
         pyplot.pie([float(v) for v in Weekly_graph_categories[i].values()], labels=[str(k) for k in Weekly_graph_categories[i].keys()],
            autopct=None)
-    return Weekly_graph_categories
+    return Weekly_graph_categories_in_month
 
 def track_expense(user, month, year,class_existence):
     expense=get_reports_monthly(user,month, year)
