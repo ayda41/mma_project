@@ -154,14 +154,9 @@ class User():
         self.user_projects = []
         
         self.id = hash(name + email)
-
-        
- #adding a new project to the Project list through the engine:
-
-
         self.persoExp = PersonalLedger()
     
-
+#adding a new project to the Project list through the engine:
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
