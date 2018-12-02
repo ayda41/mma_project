@@ -82,7 +82,6 @@ class Project():
                                     "total_amount": [np.nan],
                                     "people_name": [np.nan], 
                                     "payer_name": [np.nan], 
-
                                     "method": [np.nan],
                                     "description": [np.nan],
                                     "category": [np.nan]},
@@ -98,7 +97,6 @@ class Project():
         
     def update_balance(self, balance):
         for user, amount in balance.items():
-
             self.balance[user] = self.balance[user] + amount
     
     def repr_ledger(self):
@@ -110,7 +108,6 @@ class Project():
         for f in self.balance:
             balance_name[f.name] = self.balance[f]
         return balance_name
-    
 
 class User():
     def __init__(self, name, email):
