@@ -625,6 +625,122 @@ class LogIn(tk.Frame):
         quitButton = tk.Button(bottomframe, text = "Quit", command = quit, bg = 'light salmon')
         quitButton.pack(pady =10, padx = 10, side = RIGHT, anchor = SE)
         
+class AccountPage(tk.Frame):
+    
+    def back_home(self, controller):
+        controller.show_frame(MenuPage)
+        controller.frames[MenuPage].show_user_info(controller)
+    
+    def change_email(self, new_email, controller):
+        if new_email != '':
+            name = str(controller.user.name)
+            controller.user.email = new_email
+            user_database = shelve.open('user_database')
+            user_database[name] = controller.user
+            user_database.close()
+            self.email_text_box.config(state=NORMAL)
+            self.email_text_box.delete('1.0', END)
+            self.email_text_box.insert("end", 'Email changed to ' + str(new_email))
+            self.email_text_box.see("end")
+            self.email_text_box.config(state=DISABLED)
+            newEmailEntry.delete(0, END)
+    
+    def reveal_email(self, canvas, controller):
+        if not self.emailStatus:
+            
+            global newEmailEntry
+            
+            user_database = shelve.open('user_database')
+    
+            emailLabel = tk.Label(canvas, text="Current Email: " + str(controller.user.email), anchor="w", font=SMALL_FONT,  bg = 'SteelBlue2')
+            emailLabel.pack(pady=10,padx=10)
+            
+            newEmailEntry = Entry(canvas, width=50)
+            newEmailEntry.pack(side = TOP)
+            
+            EmailButton = tk.Button(canvas, text="Change email",
+                            command=lambda: self.change_email(newEmailEntry.get(), controller))
+            EmailButton.pack(pady =5, padx = 5, side = TOP, anchor = N)
+            
+            self.email_text_box = Text(canvas, height = 1, state=DISABLED, bg='SteelBlue2')
+            self.email_text_box.pack(pady =5, padx = 5, side = TOP, anchor = N, fill=X)
+            
+            user_database.close()
+            self.emailStatus = True
+        
+    def change_password(self, new_password, controller):
+        if new_password != '':
+            user_login_database = shelve.open('user_login')
+            user_login_database[controller.user.name] = new_password
+            user_login_database.close()
+            self.password_text_box.config(state=NORMAL)
+            self.password_text_box.delete('1.0', END)
+            self.password_text_box.insert("end", 'Password changed!')
+            self.password_text_box.see("end")
+            self.password_text_box.config(state=DISABLED)
+            newPasswordEntry.delete(0, END)
+        
+    def reveal_password(self, canvas, controller):
+        if not self.passwordStatus:
+            
+            global newPasswordEntry
+            
+            user_login = shelve.open('user_login')
+    
+            passwordLabel = tk.Label(canvas, text="Current Password: " + str(user_login[str(controller.user.name)]), anchor="w", font=SMALL_FONT,  bg = 'SteelBlue2')
+            passwordLabel.pack(pady=10,padx=10)
+            
+            newPasswordEntry = Entry(canvas, width=50, show="*")
+            newPasswordEntry.pack(side = TOP)
+            
+            passwordButton = tk.Button(canvas, text="Change password",
+                            command=lambda: self.change_password(newPasswordEntry.get(), controller))
+            passwordButton.pack(pady =5, padx = 5, side = TOP, anchor = N)
+            
+            self.password_text_box = Text(canvas, height = 1, state=DISABLED, bg='SteelBlue2')
+            self.password_text_box.pack(pady =5, padx = 5, side = TOP, anchor = NW, fill = X)
+            
+            user_login.close()
+            self.passwordStatus = True
+    
+    def __init__(self, parent, controller):
+        
+        tk.Frame.__init__(self, parent,  bg = 'SteelBlue1')
+        
+        self.passwordStatus = False
+        self.emailStatus = False
+        
+        label = tk.Label(self, text="User Account", font=LARGE_FONT,  bg = 'SteelBlue1')
+        label.pack(pady=10,padx=10)
+        
+        spaceCanvas0 = Canvas(self, height = 3, bg = 'black')
+        spaceCanvas0.pack(fill=X)
+        
+        emailCanvas = Canvas(self, height = 1,  bg = 'SteelBlue2')
+        emailCanvas.pack(pady=5, fill=X)
+        
+        button1 = tk.Button(self, text='Email', command=lambda: self.reveal_email(emailCanvas, controller))
+        button1.pack()
+        
+        spaceCanvas = Canvas(self, height = 3, bg = 'black')
+        spaceCanvas.pack(pady=5, fill=X)
+        
+        passwordCanvas = Canvas(self, height = 1,  bg = 'SteelBlue2')
+        passwordCanvas.pack(pady=5, fill=X)
+        
+        button2 = tk.Button(self, text='Password', command=lambda: self.reveal_password(passwordCanvas, controller))
+        button2.pack()
+        
+        spaceCanvas2 = Canvas(self, height = 3, bg = 'black')
+        spaceCanvas2.pack(pady=5, fill=X)
+        
+        button3 = tk.Button(self, text="Back to Home",
+                           command=lambda: self.back_home(controller))
+        button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+
+
+
+        
 
 ## MAIN
 
