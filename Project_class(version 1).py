@@ -54,6 +54,20 @@ def create_transaction(project, amount, people, payer, method, description, cate
             balance.update({payer: - amount})
         project.update_balance(balance)
     push_balance_project_user(balance)
+    
+    transac = pd.DataFrame({"project_id": project.id, 
+                            "transac_id": transac_id,
+                            "date": date, 
+                            "total_amount": amount, 
+                            "people_name": [people_name],
+                            "payer_name": payer.name, 
+                            "method": method, 
+                            "description": description,
+                            "category": category,
+                            "Split": [Split]})
+    project.add_transaction(transac)
+
+    push_balance_project_user(balance)
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
 def create_personal_transaction(user, amount, description, category):
