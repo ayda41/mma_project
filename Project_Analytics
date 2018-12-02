@@ -17,6 +17,36 @@ def get_reports_monthly(user, month, year):
         if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
             Monthly_graph_categories[row['category']]+=row['total_amount']
     return Monthly_graph_categories
+    
+    def get_reports_weekly(user, month, year):
+    user_name=user
+    user_name_str=user.name
+    Weekly_graph_categories={}
+    for i in range(53):
+        Weekly_graph_categories[i]={element:0 for element in categories}
+    for i in user_name.user_projects:
+        Existing_ledg=i.repr_ledger()
+        for index, row in Existing_ledg.iterrows():
+            if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+                if user_name_str in row['people_name']:
+                    Weekly_graph_categories[int(datetime.date(datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').day).isocalendar()[1])][(row['category'])]+= row['Split'][(row['people_name'].index(user_name_str))]
+                else:
+                    pass
+                
+            else:
+                pass
+    Pers_ledger=user_name.persoExp.repr_ledger()
+    for index,row in Pers_ledger.iterrows():
+        if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+            Weekly_graph_categories[int(datetime.date(datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').day).isocalendar()[1])][(row['category'])]+= row['total_amount']
+        else:
+            pass
+        
+    for i in range((datetime.date(year,int(months[month]),1).isocalendar()[1]),(datetime.date(year,months[month],calendar.monthrange(year,months[month])[1]).isocalendar()[1])+1):
+        print(Weekly_graph_categories[i])
+        pyplot.pie([float(v) for v in Weekly_graph_categories[i].values()], labels=[str(k) for k in Weekly_graph_categories[i].keys()],
+           autopct=None)
+    return Weekly_graph_categories
 
 
 
