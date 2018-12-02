@@ -20,7 +20,6 @@ import datetime
 categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-    #create the transac id using a hash function with the project id the date and the amount
     hash_id = str(project.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
     people_name = []
@@ -30,13 +29,12 @@ def create_transaction(project, amount, people, payer, method, description, cate
                             "transac_id": transac_id,
                             "date": date, 
                             "total_amount": amount, 
-                            "people_name": people_name,
+                            "people_name": [people_name],
                             "payer_name": payer.name, 
                             "method": method, 
                             "description": description,
                             "category": category})
-    t = transac#.drop(index = 1)
-    project.add_transaction(t)
+    project.add_transaction(transac)
     if method == 'equal':
         balance = {}
         split = amount/len(people_name)
@@ -51,22 +49,55 @@ def create_transaction(project, amount, people, payer, method, description, cate
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
-
+    push_balance_project_user(balance)
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
-
 def create_personal_transaction(user, amount, description, category):
-    date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-    #create the transac id using a hash function with the project id the date and the amount
+    date = datetime.datetime.now()
+    date_string = date.strftime("%m-%d-%y-%H-%M")
     hash_id = str(user.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
     transac = pd.DataFrame({"transac_id": transac_id,
-                            "date": date, 
+                            "date": date_string, 
                             "total_amount": amount, 
                             "description": description,
                             "category": [category]})
-    t = transac#.drop(index = 1)
-    user.persoExp.add_transaction(t)
+    user.persoExp.add_transaction(transac)
+    user.persoExp.update_transac_weekly_report(transac, date)
+    user.persoExp.update_transac_monthly_report(transac, date)
+    
+def push_balance_project_user(balance):
+    owed = {}
+    owers = {}
+    neutral = {}
+    for person, amount in balance.items():
+        if amount > 0 :
+            owers[person] = amount
+        if amount < 0 :
+            owed[person] = -amount
+        else:
+            neutral[person] = 0
+    for owed_person, owed_amount in owed.items() :
+        while owed_amount > 0:
+            for owers_person, owers_amount in owers.items() : 
+                if owed_amount > owers_amount :
+                    owed_person.balance[owers_person] -= owers_amount
+                    owers_person.balance[owed_person] += owers_amount
+                    owed_amount -= owers_amount
+                    owers_amount = 0
+                else:
+                    owed_person.balance[owers_person] -= owed_amount
+                    owers_person.balance[owed_person] += owed_amount
+                    owers_amount -= owed_amount
+                    owed_amount = 0
+def payback(user, friend, amount):
+    if user.balance[friend] == 0:
+        raise ValueError('You do not owe that person.')
+    if amount <= user.balance[friend]:
+        user.payback(friend, amount)
+        friend.receive(user, amount)
+    else:
+        raise ValueError('You can not pay back more than what you owe.')
     
 class Project():
     def __init__(self, name, users):
