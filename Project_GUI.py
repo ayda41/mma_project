@@ -480,4 +480,155 @@ class EasySplit(tk.Tk):
 
 
 
+class SignUpPage(tk.Frame):
+    
+    def create_user(self):
+        
+        global idEntry
+        global emailEntry
+        global passwordEntry
+        
+        id = idEntry.get()
+        email = emailEntry.get()
+        password = passwordEntry.get()
+        new_user = User(id, email)
+        if not is_in_user_login(new_user):
+            update_user_login(new_user, password)
+            update_user_database(new_user)
+            update_friend(new_user)
+            self.controller.show_frame(LogIn)
+
+        else:
+            print("Username already exists")
+            idEntry.delete(0, END)
+            passwordEntry.delete(0, END)
+            emailEntry.delete(0, END)
+    
+    def __init__(self, parent, controller):
+        
+        global idEntry
+        global passwordEntry
+        global emailEntry
+        
+        self.controller = controller
+
+        tk.Frame.__init__(self, parent, bg='steel blue')
+
+        label = tk.Label(self, text="Sign up", font=LARGE_FONT, bg='steel blue')
+        label.pack(pady=10,padx=10)        
+
+        idLabel = Label(self, text = 'Username:', bg='steel blue')
+        idEntry = Entry(self, width=40)
+        
+        emailLabel = Label(self, text = 'Email:', bg='steel blue')
+        emailEntry = Entry(self, width=40)
+
+        passwordLabel = Label(self, text = 'Password: ', bg='steel blue')
+        passwordEntry = Entry(self, width=40, show ="*")
+
+        idLabel.pack(pady =10, padx = 10, side = TOP, anchor = N)
+        idEntry.pack(pady =5, padx = 10, side = TOP, anchor = N)
+        
+        emailLabel.pack(pady =10, padx = 10, side = TOP, anchor = N)
+        emailEntry.pack(pady =5, padx = 10, side = TOP, anchor = N)
+        
+        passwordLabel.pack(pady =10, padx = 10, side = TOP, anchor  = S)
+        passwordEntry.pack(pady =5, padx = 10, side = TOP, anchor  = S)
+        
+        button1 = tk.Button(self, text="Create Account", command= self.create_user, bg = 'SteelBlue3')
+        button1.pack(pady =10, side = TOP, anchor = S)
+        
+        button2 = tk.Button(self, text="Back to Log In", command=lambda: controller.show_frame(LogIn), bg = 'SteelBlue3')
+        button2.pack(pady =10, side = BOTTOM, anchor = S)
+
+
+class LogIn(tk.Frame):
+
+    def LogInCheck(self):
+        
+        global actEntry
+        global pinEntry
+        
+        user_login = shelve.open('user_login')
+        user_database = shelve.open('user_database')
+
+        actNum = actEntry.get()
+        pinNum = pinEntry.get()
+
+        if actNum in user_login and pinNum == user_login[actNum]:
+            self.controller.set_user(actNum)
+            self.controller.show_frame(MenuPage)
+        elif actNum not in user_login or pinNum != user_login[actNum]: 
+            self.text_box.config(state=NORMAL)
+            self.text_box.delete('1.0', END)
+            self.text_box.insert("end", 'INCORRECT')
+            self.text_box.see("end")
+            self.text_box.config(state=DISABLED)
+            actEntry.delete(0, END)
+            pinEntry.delete(0, END)
+            self.controller.show_frame(LogIn)
+        
+        user_login.close()
+        user_database.close()
+        
+    def signUp(self):
+        idEntry.delete(0, END)
+        passwordEntry.delete(0, END)
+        emailEntry.delete(0, END)
+        self.controller.show_frame(SignUpPage)
+    
+    def onclick(self, event):
+        self.LogInCheck()
+    
+    def __init__(self, parent, controller):
+
+        global actEntry
+        global pinEntry
+        
+        self.controller = controller
+
+        tk.Frame.__init__(self, parent, bg='medium turquoise')
+
+        welcomeLabel = Label(self, text = "Easy split", font = LARGE_FONT, bg='medium turquoise',fg='royal blue')
+        welcomeLabel.pack(pady =10, padx = 10, side = TOP, anchor = N)
+        
+        logLabel = Label(self, text = "Login With Your Username and Password", font = SMALL_FONT, bg='medium turquoise',fg='green4')
+        logLabel.pack(pady =10, padx = 10, side = TOP, anchor = N)
+
+
+        actLabel = Label(self, text = 'Username:', bg='medium turquoise')
+        actEntry = Entry(self, width=40)
+
+        pinLabel = Label(self, text = 'Password: ', bg='medium turquoise')
+        pinEntry = Entry(self, width=40, show ="*")
+
+        actLabel.pack(pady =5, padx = 10, side = TOP, anchor = N)
+        actEntry.pack(pady =5, padx = 10, side = TOP, anchor = N)
+        
+        pinLabel.pack(pady =10, padx = 10, side = TOP, anchor  = N)
+        pinEntry.pack(pady =5, padx = 10, side = TOP, anchor  = N)
+        
+        self.text_box = Text(self, height = 1, width = 30, state=DISABLED, bg='medium turquoise')
+
+        logInButton = tk.Button(self, text = "Login", command = self.LogInCheck, bg = 'turquoise3')
+        self.controller.bind('<Return>', self.onclick)
+        logInButton.pack(pady =5, side = TOP)
+        
+        self.text_box.pack(pady =10, side = TOP, fill = Y, expand = False)
+        
+        bottomframe = Frame(self, bg='medium turquoise')
+        bottomframe.pack( side = BOTTOM, anchor=N, fill=X)
+        
+        signUpButton = tk.Button(bottomframe, text = "Sign up", command = self.signUp, bg = 'turquoise3')
+        signUpButton.pack(pady =5, side = TOP)
+
+        quitButton = tk.Button(bottomframe, text = "Quit", command = quit, bg = 'light salmon')
+        quitButton.pack(pady =10, padx = 10, side = RIGHT, anchor = SE)
+        
+
+## MAIN
+
+if __name__ == "__main__":
+    app = EasySplit()
+    app.mainloop()
 
