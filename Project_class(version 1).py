@@ -160,6 +160,11 @@ class User():
         for i in self.friends:
             l.append(i.name)
         return l 
+    def print_balance(self):
+        balance_name = {}
+        for f in self.balance:
+            balance_name[f.name] = self.balance[f]
+        return balance_name
 
 class PersonalLedger():
     def __init__(self):
