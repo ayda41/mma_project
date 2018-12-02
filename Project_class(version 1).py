@@ -17,29 +17,30 @@ import datetime
 
 #The id can be generated through a hash function using the project id, the date and the amount.
 #The date is "%m-%d-%y-%H-%M"
-categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
+categories = ['Automobile', 'Charges', 'Clothing', 'Education','Electronics', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
+
+months = {'Jan':1,'Feb':2,'Mar':3,'Apr':4,'May':5,'Jun':6,'Jul':7,'Aug':8, 'Sep':9, 'Oct':10, 'Nov':11, 'Dec':12}
+
+max_allowance={'student':{'Automobile':2000, 'Charges':20, 'Clothing':20, 'Education':2, 'Events':1, 'Food':2000, 'Gift':200, 'Healthcare/Insurance':100, 'Household':2000, 'Leisure':200, 'Pet':50, 'Utilities':200,'Electronics':2000},'Working>50000':{'Automobile':0, 'Charges':0, 'Clothing':0, 'Education':0, 'Events':0, 'Food':0, 'Gift':0, 'Healthcare/Insurance':0, 'Household':0, 'Leisure':0, 'Pet':0, 'Utilities':0,'Electronics':0},'Working<50000':{'Automobile':0, 'Charges':0, 'Clothing':0, 'Education':0, 'Events':0, 'Food':0, 'Gift':0, 'Healthcare/Insurance':0, 'Household':0, 'Leisure':0, 'Pet':0, 'Utilities':0,'Electronics':0}}
+
+LARGE_FONT= ("Verdana", 18)
+SMALL_FONT= ("Arial", 12)
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-    #create the transac id using a hash function with the project id the date and the amount
     hash_id = str(project.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
     people_name = []
+    S=[]
+    for i in args:
+        S.append(float(i))
     for i in people:
         people_name.append(i.name)
-    transac = pd.DataFrame({"project_id": project.id, 
-                            "transac_id": transac_id,
-                            "date": date, 
-                            "total_amount": amount, 
-                            "people_name": people_name,
-                            "payer_name": payer.name, 
-                            "method": method, 
-                            "description": description,
-                            "category": category})
-    t = transac#.drop(index = 1)
-    project.add_transaction(t)
+
     if method == 'equal':
         balance = {}
         split = amount/len(people_name)
+        #Split=list(args)
+        Split = np.array([split]*len(people_name))
         for i in people:
             balance.update({i: split})
         if payer in people:
@@ -47,26 +48,81 @@ def create_transaction(project, amount, people, payer, method, description, cate
         else:
             balance.update({payer: - amount})
         project.update_balance(balance)
+        
     if method == 'unequal':  #still need work
-        balance = args[0]
-        del balance[payer]
+        balance = {}
+        Split=S
+        balance.update({payer: -amount})
+        for i in people:
+            balance.update({i: Split[people.index(i)]})
+        if payer in people:
+            balance[payer] = balance[payer] - Split[people.index(i)]
+        else:
+            balance.update({payer: - amount})
         project.update_balance(balance)
+    push_balance_project_user(balance)
+    
+    transac = pd.DataFrame({"project_id": project.id, 
+                            "transac_id": transac_id,
+                            "date": date, 
+                            "total_amount": amount, 
+                            "people_name": [people_name],
+                            "payer_name": payer.name, 
+                            "method": method, 
+                            "description": description,
+                            "category": category,
+                            "Split": [Split]})
+    project.add_transaction(transac)
 
+    push_balance_project_user(balance)
 #need a function that takes the balance of a project, computes which user owes who 
 #and updates the owed balance of each user belonging to the project. 
-
 def create_personal_transaction(user, amount, description, category):
-    date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-    #create the transac id using a hash function with the project id the date and the amount
+    date = datetime.datetime.now()
+    date_string = date.strftime("%m-%d-%y-%H-%M")
     hash_id = str(user.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
     transac = pd.DataFrame({"transac_id": transac_id,
-                            "date": date, 
+                            "date": date_string, 
                             "total_amount": amount, 
                             "description": description,
                             "category": [category]})
-    t = transac#.drop(index = 1)
-    user.persoExp.add_transaction(t)
+    user.persoExp.add_transaction(transac)
+    user.persoExp.update_transac_weekly_report(transac, date)
+    user.persoExp.update_transac_monthly_report(transac, date)
+    
+def push_balance_project_user(balance):
+    owed = {}
+    owers = {}
+    neutral = {}
+    for person, amount in balance.items():
+        if amount > 0 :
+            owers[person] = amount
+        if amount < 0 :
+            owed[person] = -amount
+        else:
+            neutral[person] = 0
+    for owed_person, owed_amount in owed.items() :
+        while owed_amount > 0:
+            for owers_person, owers_amount in owers.items() : 
+                if owed_amount > owers_amount :
+                    owed_person.balance[owers_person] -= owers_amount
+                    owers_person.balance[owed_person] += owers_amount
+                    owed_amount -= owers_amount
+                    owers_amount = 0
+                else:
+                    owed_person.balance[owers_person] -= owed_amount
+                    owers_person.balance[owed_person] += owed_amount
+                    owers_amount -= owed_amount
+                    owed_amount = 0
+def payback(user, friend, amount):
+    if user.balance[friend] == 0:
+        raise ValueError('You do not owe that person.')
+    if amount <= user.balance[friend]:
+        user.payback(friend, amount)
+        friend.receive(user, amount)
+    else:
+        raise ValueError('You can not pay back more than what you owe.')
     
 class Project():
     def __init__(self, name, users):
@@ -120,22 +176,17 @@ class User():
         self.user_projects = []
         
         self.id = hash(name + email)
-
-        
- #adding a new project to the Project list through the engine:
-
-
         self.persoExp = PersonalLedger()
     
-
+#adding a new project to the Project list through the engine:
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
             if user not in self.friends and user.id != self.id:
                 self.friends.append(user)
                 self.balance[user.name] = 0
-
-    def add_friends(self, friend):
+   
+def add_friends(self, friend):
         self.friends.append(friend)
    
     def update_balance(self, balance: dict):
@@ -153,6 +204,7 @@ class User():
         for i in self.friends:
             l.append(i.name)
         return l 
+    
     def print_balance(self):
         balance_name = {}
         for f in self.balance:
@@ -164,8 +216,7 @@ class User():
     
      def receive(self, friend, amount):
         self.balance[friend] += amount
-        
-        
+
 class PersonalLedger():
     def __init__(self):
         self.persoLedger = pd.DataFrame({"transac_id": [np.nan],
@@ -208,7 +259,6 @@ class PersonalLedger():
                                                     "category": transac_category, 
                                                     "total_amount": [transac_amount]}) 
             self.weekly_report = pd.concat([self.weekly_report, new_weekly_report], ignore_index = True)
-
         
     def return_weekly_report(self):
         (year, week, day) = datetime.datetime.now().isocalendar()
@@ -239,3 +289,6 @@ class PersonalLedger():
     def return_monthly_report(self):
         (year, month) = (datetime.datetime.now().year, datetime.datetime.now().month)
         return self.monthly_report.loc[(self.monthly_report['year'] == year) & (self.monthly_report['month'] == month)].drop([0])
+
+    def return_transactions(self):
+        return self.persoLedger[["date", "total_amount", "description","category"]].copy().drop([0])
