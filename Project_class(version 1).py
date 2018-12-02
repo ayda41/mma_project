@@ -168,8 +168,8 @@ class User():
             if user not in self.friends and user.id != self.id:
                 self.friends.append(user)
                 self.balance[user.name] = 0
-
-    def add_friends(self, friend):
+   
+def add_friends(self, friend):
         self.friends.append(friend)
    
     def update_balance(self, balance: dict):
@@ -187,6 +187,7 @@ class User():
         for i in self.friends:
             l.append(i.name)
         return l 
+    
     def print_balance(self):
         balance_name = {}
         for f in self.balance:
@@ -198,8 +199,6 @@ class User():
     
      def receive(self, friend, amount):
         self.balance[friend] += amount
-        
-        
 class PersonalLedger():
     def __init__(self):
         self.persoLedger = pd.DataFrame({"transac_id": [np.nan],
