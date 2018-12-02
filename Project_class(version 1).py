@@ -23,15 +23,15 @@ def create_transaction(project, amount, people, payer, method, description, cate
     #create the transac id using a hash function with the project id the date and the amount
     hash_id = str(project.id) + str(date) + str(amount)
     transac_id = hash(hash_id)
-    people_id = []
+    people_name = []
     for i in people:
-        people_id.append(i.id)
+        people_name.append(i.name)
     transac = pd.DataFrame({"project_id": project.id, 
                             "transac_id": transac_id,
                             "date": date, 
                             "total_amount": amount, 
-                            "people_id": people_id,
-                            "payer_id": payer.id, 
+                            "people_name": people_name,
+                            "payer_name": payer.name, 
                             "method": method, 
                             "description": description,
                             "category": category})
@@ -39,13 +39,15 @@ def create_transaction(project, amount, people, payer, method, description, cate
     project.add_transaction(t)
     if method == 'equal':
         balance = {}
-        split = amount/len(people_id)
+        split = amount/len(people_name)
         for i in people:
-            if i != payer:
-                balance.update({i: split})
-        balance.update({payer: -amount})
+            balance.update({i: split})
+        if payer in people:
+            balance[payer] = balance[payer] - amount
+        else:
+            balance.update({payer: - amount})
         project.update_balance(balance)
-    if method == 'custom':  #still need work
+    if method == 'unequal':  #still need work
         balance = args[0]
         del balance[payer]
         project.update_balance(balance)
@@ -66,7 +68,6 @@ def create_personal_transaction(user, amount, description, category):
     t = transac#.drop(index = 1)
     user.persoExp.add_transaction(t)
     
-
 class Project():
     def __init__(self, name, users):
         self.project_name = name
@@ -79,31 +80,15 @@ class Project():
                                     "transac_id": [np.nan],
                                     "date": [np.nan], 
                                     "total_amount": [np.nan],
-                                    "people_id": [np.nan], 
-                                    "payer_id": [np.nan], 
+                                    "people_name": [np.nan], 
+                                    "payer_name": [np.nan], 
+
                                     "method": [np.nan],
                                     "description": [np.nan],
                                     "category": [np.nan]},
                                     dtype = 'object')
         self.balance = {user.name: 0 for user in users}
     
-    # @property
-    # def project_id(self):
-    #     return self._project_id
-    # 
-    # @property
-    # def ledger(self):
-    #     return self._ledger
-    # 
-    # @ledger.setter
-    # def ledger(self, transac):
-    #     self.ledger.append(transac)
-    # @property
-    # def balance(self):
-    #     return self._balance
-    #     
-    # # @balance.setter
-    # # def balance(self, transaction):
         
     def change_name(self, new_name):
         self._project_name = new_name
@@ -114,18 +99,16 @@ class Project():
     def update_balance(self, balance):
         for user, amount in balance.items():
             self.balance[user.name] = self.balance[user.name] + amount
-    
-    #The project ledger is updated through the engine.
-    
 class User():
     def __init__(self, name, email):
         self.name = name
         self.email = email
-        self.balance = {}
-#negative balance -> money is owed to user by others
+        self.balance = {} 
+        #negative balance indicates money is owed to user by others
 
         self.friends = []
         self.user_projects = []
+        
         self.id = hash(name + email)
 
         
@@ -172,8 +155,8 @@ class PersonalLedger():
         self.weeklyAmount = 0
         self.weeklyAmountPerCategory = pd.DataFrame({"total_amount": [np.nan],
                                         "category": [np.nan]},
-                                        dtype = 'object')
-
+                                        dtype = 'object') #modify with index [year, nb of week in year]  datetime.date(2019, 1, 7).isocalendar()[1]
+        #add a monthlyAmount
         
     def add_transaction(self, mytransac):
         self.persoLedger = pd.concat([self.persoLedger, mytransac], ignore_index = True)
@@ -199,7 +182,7 @@ class PersonalLedger():
         week_amount = self.persoLedger[['date', 'total_amount', 'category']]
         week_amount.date = week_amount.date[0:8]
         week_amount.loc[week_amount['date'].isin(week_array)]
-        amount_per_category = week_amount[['total_amount', 'category']]
+        amount_per_category = week_amount[['category', 'total_amount']]
         self.weeklyAmountPerCategory = amount_per_category
         
     def return_weekly_report(self):
