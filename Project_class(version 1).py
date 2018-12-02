@@ -159,6 +159,9 @@ class User():
     
     def payback(self, friend, amount):
         self.balance[friend] -= amount
+    
+     def receive(self, friend, amount):
+        self.balance[friend] += amount
         
         
 class PersonalLedger():
