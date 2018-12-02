@@ -3,7 +3,6 @@
 """
 Spyder Editor
 
-This is a temporary script file.
 """
 import time
 import datetime
