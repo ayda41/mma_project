@@ -425,5 +425,58 @@ def track_expense(user, month, year,class_existence):
     for i in categories:    
         bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
         bud_sug [i]=f'you can reduce expenditure by: ${bud_sug[i]}'
+        
+ class EasySplit(tk.Tk):    
+    
+    def __init__(self, *args, **kwargs):
+        
+        self.user_name = 'default'
+        self.user = User('default', 'default')
+        self.project = Project('default', [])
+
+        tk.Tk.__init__(self, *args, **kwargs)
+        self.title('Easy Split')
+        container = tk.Frame(self)
+
+        container.pack(side="top", fill="both", expand = True)
+
+        container.grid_rowconfigure(0, weight=1)
+        container.grid_columnconfigure(0, weight=1)
+
+        self.frames = {}
+
+        for F in (MenuPage, MyLedgerPage, BalancePage, AnalyticPage, AccountPage, CreateProjectPage, LogIn, SignUpPage, CreatePersoTransac, PaybackPage, ProjectListPage, ProjectPage, FriendsPage, CreateTransacPage):
+
+            frame = F(container, self)
+
+            self.frames[F] = frame
+
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.show_frame(LogIn)
+
+    def show_frame(self, cont):
+
+        frame = self.frames[cont]
+        frame.tkraise()
+        
+    def set_user(self, user_name):
+        user_database = shelve.open('user_database')
+        if user_name in user_database:
+            self.user = user_database[user_name]
+            self.user_name = user_name
+        else:
+            raise ValueError('The user does not exists.')
+        user_database.close()
+
+    def set_project(self, project_name):
+        project_database = shelve.open('project_database')
+        if project_name in project_database:
+            self.project = project_database[project_name]
+        else:
+            raise ValueError('The project does not exist.')
+        project_database.close()
+
+
 
 
