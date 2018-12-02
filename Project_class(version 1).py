@@ -178,38 +178,67 @@ class PersonalLedger():
                                         "description": [np.nan],
                                         "category": [np.nan]},
                                         dtype = 'object')
-        self.weeklyAmount = 0
-        self.weeklyAmountPerCategory = pd.DataFrame({"total_amount": [np.nan],
-                                        "category": [np.nan]},
+        (year, nb_week, day) = datetime.datetime.now().isocalendar()
+        self.weekly_report = pd.DataFrame({"year": year, "week": nb_week,
+                                                    "category": [np.nan], 
+                                                    "total_amount": [np.nan]},
+                                        dtype = 'object') 
+        nb_month = datetime.datetime.now().month
+        self.monthly_report = pd.DataFrame({"year": year, "month": nb_month,
+                                                    "category": [np.nan], 
+                                                    "total_amount": [np.nan]},
                                         dtype = 'object')
-
         
     def add_transaction(self, mytransac):
         self.persoLedger = pd.concat([self.persoLedger, mytransac], ignore_index = True)
-    
-    def update_weeklyAmount(self):
-        current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-        week_array = []
-        for i in reversed(range(0,7)):
-            day = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime("%m-%d-%y")
-            week_array.append(day)
-        week_amount = self.persoLedger[['date', 'total_amount']]
-        week_amount.date = week_amount.date[0:8]
-        week_amount.loc[week_amount['date'].isin(week_array)]
-        amount = week_amount['total_amount'].sum()
-        self.weeklyAmount = amount
-        
-    def update_weeklyAmountPerCategory(self):
-        current_date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
-        week_array = []
-        for i in reversed(range(0,7)):
-            day = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime("%m-%d-%y")
-            week_array.append(day)
-        week_amount = self.persoLedger[['date', 'total_amount', 'category']]
-        week_amount.date = week_amount.date[0:8]
-        week_amount.loc[week_amount['date'].isin(week_array)]
-        amount_per_category = week_amount[['total_amount', 'category']]
-        self.weeklyAmountPerCategory = amount_per_category
+
+  
+    def total_weeklyAmount(self):
+        (year, week, day) = datetime.datetime.now().isocalendar()
+        self.weekly_report.loc[self.weekly_report['week'] == week].loc[self.weekly_report['year'] == year]
+        amount = self.weekly_report['total_amount'].sum()
+        return amount
+
+    def update_transac_weekly_report(self, transac, date):
+        (year, week, day) = date.isocalendar()
+        transac_amount = transac.at[0, 'total_amount']
+        transac_category = transac.at[0, 'category']
+        if((self.weekly_report['year'] == year) & (self.weekly_report['week'] == week) & (self.weekly_report['category'] == transac_category)).any():
+            category_sum = self.weekly_report.loc[(self.weekly_report['year'] == year) & (self.weekly_report['week'] == week) & (self.weekly_report['category'] == transac_category)]['total_amount'].sum() + transac_amount
+            i = self.weekly_report[(self.weekly_report['year'] == year) & (self.weekly_report['week'] == week) & (self.weekly_report['category'] == transac_category)].index
+            self.weekly_report.loc[i, 'total_amount'] = category_sum
+        else:
+            new_weekly_report = pd.DataFrame({"year": year, "week": week, 
+                                                    "category": transac_category, 
+                                                    "total_amount": [transac_amount]}) 
+            self.weekly_report = pd.concat([self.weekly_report, new_weekly_report], ignore_index = True)
         
     def return_weekly_report(self):
-        return self.weeklyAmountPerCategory.groupby(['category'])[['total_amount']].sum()
+        (year, week, day) = datetime.datetime.now().isocalendar()
+        return self.weekly_report.loc[(self.weekly_report['year'] == year) & (self.weekly_report['week'] == week)].drop([0])
+        
+    
+    
+    def total_monthlyAmount(self):
+        (year, month) = (datetime.datetime.now().year, datetime.datetime.now().month)
+        self.monthly_report.loc[self.monthly_report['month'] == month].loc[self.monthly_report['year'] == year]
+        amount = self.monthly_report['total_amount'].sum()
+        return amount
+
+    def update_transac_monthly_report(self, transac, date):
+        (year, month) = (date.year, date.month)
+        transac_amount = transac.at[0, 'total_amount']
+        transac_category = transac.at[0, 'category']
+        if((self.monthly_report['year'] == year) & (self.monthly_report['month'] == month) & (self.monthly_report['category'] == transac_category)).any():
+            category_sum = self.monthly_report.loc[(self.monthly_report['year'] == year) & (self.monthly_report['month'] == month) & (self.monthly_report['category'] == transac_category)]['total_amount'].sum() + transac_amount
+            i = self.monthly_report[(self.monthly_report['year'] == year) & (self.monthly_report['month'] == month) & (self.monthly_report['category'] == transac_category)].index
+            self.monthly_report.loc[i, 'total_amount'] = category_sum
+        else:
+            new_monthly_report = pd.DataFrame({"year": year, "month": month, 
+                                                    "category": transac_category, 
+                                                    "total_amount": [transac_amount]}) 
+            self.monthly_report = pd.concat([self.monthly_report, new_monthly_report], ignore_index = True)
+
+    def return_monthly_report(self):
+        (year, month) = (datetime.datetime.now().year, datetime.datetime.now().month)
+        return self.monthly_report.loc[(self.monthly_report['year'] == year) & (self.monthly_report['month'] == month)].drop([0])
