@@ -295,3 +295,7 @@ class PersonalLedger():
 
     def return_transactions(self):
         return self.persoLedger[["date", "total_amount", "description","category"]].copy().drop([0])
+    
+    def repr_ledger(self):
+        rep = self.persoLedger.drop([0])
+        return rep 
