@@ -79,31 +79,14 @@ class Project():
                                     "transac_id": [np.nan],
                                     "date": [np.nan], 
                                     "total_amount": [np.nan],
-                                    "people_id": [np.nan], 
-                                    "payer_id": [np.nan], 
+                                    "people_name": [np.nan], 
+                                    "payer_name": [np.nan], 
                                     "method": [np.nan],
                                     "description": [np.nan],
                                     "category": [np.nan]},
                                     dtype = 'object')
-        self.balance = {user.name: 0 for user in users}
+        self.balance = {user: 0 for user in users}
     
-    # @property
-    # def project_id(self):
-    #     return self._project_id
-    # 
-    # @property
-    # def ledger(self):
-    #     return self._ledger
-    # 
-    # @ledger.setter
-    # def ledger(self, transac):
-    #     self.ledger.append(transac)
-    # @property
-    # def balance(self):
-    #     return self._balance
-    #     
-    # # @balance.setter
-    # # def balance(self, transaction):
         
     def change_name(self, new_name):
         self._project_name = new_name
@@ -113,9 +96,17 @@ class Project():
         
     def update_balance(self, balance):
         for user, amount in balance.items():
-            self.balance[user.name] = self.balance[user.name] + amount
+            self.balance[user] = self.balance[user] + amount
     
-    #The project ledger is updated through the engine.
+    def repr_ledger(self):
+        rep = self.ledger.drop([0])
+        return rep  
+        
+    def print_balance(self):
+        balance_name = {}
+        for f in self.balance:
+            balance_name[f.name] = self.balance[f]
+        return balance_name
     
 class User():
     def __init__(self, name, email):
