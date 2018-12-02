@@ -341,4 +341,89 @@ class User():
         
     def receive(self, friend, amount):
         self.balance[friend] += amount
+        
+    def get_reports_monthly(user, month, year):
+    user_name=user
+    user_name_str=user.name
+    Monthly_graph_categories= {element:0 for element in categories}
+    for i in user_name.user_projects:
+        Existing_ledg=i.repr_ledger()
+        for index, row in Existing_ledg.iterrows():
+            if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+                if user_name_str in row['people_name']:
+                    Monthly_graph_categories[(row['category'])]+= row['Split'][(row['people_name'].index(user_name_str))]
+                else:
+                    pass
+            else:
+                pass
+    Pers_ledger=user_name.persoExp.repr_ledger()
+    for index,row in Pers_ledger.iterrows():
+        if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+            Monthly_graph_categories[row['category']]+=row['total_amount']
+    return Monthly_graph_categories
+    
+    def get_reports_weekly(user, month, year):
+    user_name=user
+    user_name_str=user.name
+    Weekly_graph_categories={}
+    for i in range(53):
+        Weekly_graph_categories[i]={element:0 for element in categories}
+    for i in user_name.user_projects:
+        Existing_ledg=i.repr_ledger()
+        for index, row in Existing_ledg.iterrows():
+            if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+                if user_name_str in row['people_name']:
+                    Weekly_graph_categories[int(datetime.date(datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').day).isocalendar()[1])][(row['category'])]+= row['Split'][(row['people_name'].index(user_name_str))]
+                else:
+                    pass
+                
+            else:
+                pass
+    Pers_ledger=user_name.persoExp.repr_ledger()
+    for index,row in Pers_ledger.iterrows():
+        if  datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month==months[month] and datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year== year:
+            Weekly_graph_categories[int(datetime.date(datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').year,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').month,datetime.datetime.strptime(row['date'], '%m-%d-%y-%H-%M').day).isocalendar()[1])][(row['category'])]+= row['total_amount']
+        else:
+            pass
+        
+    for i in range((datetime.date(year,int(months[month]),1).isocalendar()[1]),(datetime.date(year,months[month],calendar.monthrange(year,months[month])[1]).isocalendar()[1])+1):
+        print(Weekly_graph_categories[i])
+        pyplot.pie([float(v) for v in Weekly_graph_categories[i].values()], labels=[str(k) for k in Weekly_graph_categories[i].keys()],
+           autopct=None)
+    return Weekly_graph_categories
+
+def track_expense(user, month, year,class_existence):
+    expense=get_reports_monthly(user,month, year)
+    expense_left={}
+    g_list=[]
+    q_list=[]
+    critical_expense_list={}
+    for i in categories:
+        expense_left[i]=max_allowance[class_existence][i]-expense[i]
+        g_list.append(expense[i])
+        q_list.append(expense_left[i])
+        y=((expense_left[i]/max_allowance[class_existence][i]))*100
+        if expense[i]>max_allowance[class_existence][i]:
+            critical_expense_list[i]=f'you have surpassed the allowance by:${-expense_left[i]} of {max_allowance[class_existence][i]}'
+        else:
+            critical_expense_list[i]=f'you have about {y}% of allowance remaining:${expense_left[i]} of {max_allowance[class_existence][i]}'
+    ind = np.arange(1,1+len(categories))
+    pyplot.bar(ind, g_list, .35)
+    pyplot.bar(ind, q_list, .35, bottom=g_list)
+    return critical_expense_list
+    
+   def save_suggestions(user,month, year,class_existence,amount_save):
+    prev_month=[k for k,v in months.items() if v == (months[month]-1)]
+    Exp_prevmonth=get_reports_monthly(user,prev_month[0], year)
+    curr_exp_over_class={element:0 for element in categories}
+    percent_exp={element:0 for element in categories}
+    bud_sug={element:0 for element in categories}
+    for i in categories:
+        if Exp_prevmonth[i]-max_allowance[class_existence][i]>0:
+            curr_exp_over_class[i]= Exp_prevmonth[i]-max_allowance[class_existence][i]
+        percent_exp[i]=Exp_prevmonth[i]/sum(Exp_prevmonth.values())
+    for i in categories:    
+        bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
+        bud_sug [i]=f'you can reduce expenditure by: ${bud_sug[i]}'
+
 
