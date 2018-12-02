@@ -165,7 +165,11 @@ class User():
         for f in self.balance:
             balance_name[f.name] = self.balance[f]
         return balance_name
-
+    
+    def payback(self, friend, amount):
+        self.balance[friend] -= amount
+        
+        
 class PersonalLedger():
     def __init__(self):
         self.persoLedger = pd.DataFrame({"transac_id": [np.nan],
