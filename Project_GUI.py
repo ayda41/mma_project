@@ -426,7 +426,8 @@ def track_expense(user, month, year,class_existence):
         bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
         bud_sug [i]=f'you can reduce expenditure by: ${bud_sug[i]}'
         
- class EasySplit(tk.Tk):    
+### ENGINE CLASSES 
+class EasySplit(tk.Tk):    
     
     def __init__(self, *args, **kwargs):
         
