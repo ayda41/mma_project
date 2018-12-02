@@ -48,5 +48,23 @@ def get_reports_monthly(user, month, year):
            autopct=None)
     return Weekly_graph_categories
 
-
+def track_expense(user, month, year,class_existence):
+    expense=get_reports_monthly(user,month, year)
+    expense_left={}
+    g_list=[]
+    q_list=[]
+    critical_expense_list={}
+    for i in categories:
+        expense_left[i]=max_allowance[class_existence][i]-expense[i]
+        g_list.append(expense[i])
+        q_list.append(expense_left[i])
+        y=((expense_left[i]/max_allowance[class_existence][i]))*100
+        if expense[i]>max_allowance[class_existence][i]:
+            critical_expense_list[i]=f'you have surpassed the allowance by:${-expense_left[i]} of {max_allowance[class_existence][i]}'
+        else:
+            critical_expense_list[i]=f'you have about {y}% of allowance remaining:${expense_left[i]} of {max_allowance[class_existence][i]}'
+    ind = np.arange(1,1+len(categories))
+    pyplot.bar(ind, g_list, .35)
+    pyplot.bar(ind, q_list, .35, bottom=g_list)
+    return critical_expense_list
 
