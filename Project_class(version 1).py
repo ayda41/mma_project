@@ -194,6 +194,7 @@ def add_friends(self, friend):
     
      def receive(self, friend, amount):
         self.balance[friend] += amount
+
 class PersonalLedger():
     def __init__(self):
         self.persoLedger = pd.DataFrame({"transac_id": [np.nan],
@@ -236,7 +237,6 @@ class PersonalLedger():
                                                     "category": transac_category, 
                                                     "total_amount": [transac_amount]}) 
             self.weekly_report = pd.concat([self.weekly_report, new_weekly_report], ignore_index = True)
-
         
     def return_weekly_report(self):
         (year, week, day) = datetime.datetime.now().isocalendar()
@@ -267,3 +267,6 @@ class PersonalLedger():
     def return_monthly_report(self):
         (year, month) = (datetime.datetime.now().year, datetime.datetime.now().month)
         return self.monthly_report.loc[(self.monthly_report['year'] == year) & (self.monthly_report['month'] == month)].drop([0])
+
+    def return_transactions(self):
+        return self.persoLedger[["date", "total_amount", "description","category"]].copy().drop([0])
