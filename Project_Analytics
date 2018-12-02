@@ -67,4 +67,19 @@ def track_expense(user, month, year,class_existence):
     pyplot.bar(ind, g_list, .35)
     pyplot.bar(ind, q_list, .35, bottom=g_list)
     return critical_expense_list
+    
+   def save_suggestions(user,month, year,class_existence,amount_save):
+    prev_month=[k for k,v in months.items() if v == (months[month]-1)]
+    Exp_prevmonth=get_reports_monthly(user,prev_month[0], year)
+    curr_exp_over_class={element:0 for element in categories}
+    percent_exp={element:0 for element in categories}
+    bud_sug={element:0 for element in categories}
+    for i in categories:
+        if Exp_prevmonth[i]-max_allowance[class_existence][i]>0:
+            curr_exp_over_class[i]= Exp_prevmonth[i]-max_allowance[class_existence][i]
+        percent_exp[i]=Exp_prevmonth[i]/sum(Exp_prevmonth.values())
+    for i in categories:    
+        bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
+        bud_sug [i]=f'you can reduce expenditure by: ${bud_sug[i]}'
+    return bud_sug
 
