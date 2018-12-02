@@ -18,7 +18,6 @@ import datetime
 #The id can be generated through a hash function using the project id, the date and the amount.
 #The date is "%m-%d-%y-%H-%M"
 categories = ['Automobile', 'Charges', 'Clothing', 'Education', 'Events', 'Food', 'Gift', 'Healthcare/Insurance', 'Household', 'Leisure', 'Pet', 'Utilities']
-
 def create_transaction(project, amount, people, payer, method, description, category, *args):
     date = datetime.datetime.now().strftime("%m-%d-%y-%H-%M")
     #create the transac id using a hash function with the project id the date and the amount
@@ -68,8 +67,6 @@ def create_personal_transaction(user, amount, description, category):
                             "category": [category]})
     t = transac#.drop(index = 1)
     user.persoExp.add_transaction(t)
-#need a function that takes the balance of a project, computes which user owes who 
-#and updates the owed balance of each user belonging to the project. 
     
 class Project():
     def __init__(self, name, users):
@@ -85,6 +82,7 @@ class Project():
                                     "total_amount": [np.nan],
                                     "people_name": [np.nan], 
                                     "payer_name": [np.nan], 
+
                                     "method": [np.nan],
                                     "description": [np.nan],
                                     "category": [np.nan]},
@@ -107,12 +105,19 @@ class User():
         self.email = email
         self.balance = {} 
         #negative balance indicates money is owed to user by others
+
         self.friends = []
         self.user_projects = []
         
         self.id = hash(name + email)
+
+        
+ #adding a new project to the Project list through the engine:
+
+
         self.persoExp = PersonalLedger()
     
+
     def add_project(self, project : Project):
         self.user_projects.append(project)
         for user in project.project_users:
