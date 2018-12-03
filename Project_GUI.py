@@ -1438,6 +1438,20 @@ class AnalyticPage(tk.Frame):
         button3 = tk.Button(self, text="Return",
                             command=lambda: controller.show_frame(MenuPage))
         button3.pack()
+        
+class Checkbar(tk.Frame):
+   
+   def __init__(self, parent, picks=[], side=LEFT, anchor=W):
+      tk.Frame.__init__(self, parent, bg = 'SteelBlue2')
+      self.vars = []
+      for pick in picks:
+         var = StringVar()
+         var.set('0')
+         chk = Checkbutton(self, text=pick, variable=var, onvalue = pick, offvalue = '0', bg = 'SteelBlue2')
+         chk.pack(side=TOP, anchor=anchor, expand=YES)
+         self.vars.append(var)
+   def state(self):
+      return list(map((lambda var: var.get()), self.vars))
     
 
 class CreateTransacPage(tk.Frame):
