@@ -709,6 +709,70 @@ class MenuPage(tk.Frame):
                            command=lambda: controller.show_frame(MenuPage))
         button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
         
+        class PaybackPage(tk.Frame):
+    
+    def pay(self, controller, amount, friend_name):
+        user_database = shelve.open('user_database')
+        friend = user_database[friend_name]
+        if controller.user.balance[friend] == 0:
+            raise ValueError('You do not owe that person.')
+        if amount <= controller.user.balance[friend]:
+            controller.user.payback(friend, amount)
+            friend.receive(user, amount)
+        else:
+            raise ValueError('You can not pay back more than what you owe.')
+        user_database.close()
+        
+    def choose_friend(self, controller, canvas1):
+        if not self.status:
+            BFF = []
+            for friend, amount in controller.user.balance.items():
+                BFF.append((friend.name, friend.name))
+        
+            self.v = StringVar()
+            self.v.set("")
+            
+            for text, mode in BFF:
+                c = Radiobutton(canvas1, text=text,
+                                variable=self.v, value=mode)
+                c.pack(side = TOP, anchor=W)
+            self.status = True
+    
+    def __init__(self, parent, controller):
+        
+        self.status = False
+        
+        tk.Frame.__init__(self, parent)
+        
+        label = tk.Label(self, text="Pay a friend back", font=LARGE_FONT)
+        label.pack(pady=10,padx=10)
+
+        sublabel = tk.Label(self, text="Choose a friend", font=SMALL_FONT)
+        sublabel.pack(pady=10,padx=10)
+                
+        button = tk.Button(self, text="Choose",
+                            command=lambda: self.choose_friend(controller, canvas1))
+        button.pack(side = TOP, anchor = N)
+        
+        canvas1 = Canvas(self, height = 25)
+        canvas1.pack(side=TOP)
+        
+        canvas2 = Canvas(self, height = 5)
+        canvas2.pack(side=TOP)
+        
+        amountFriendLabel = Label(canvas2, text = 'Amount: ', anchor='w')
+        amountFriendEntry = Entry(canvas2)
+        amountFriendLabel.pack(side = TOP)
+        amountFriendEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        button1 = tk.Button(self, text="Pay",
+                            command=lambda: self.pay(controller, amountFriendEntry.get(), self.v.get()))
+        button1.pack(side = TOP, anchor = N)
+        
+        button2 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(BalancePage))
+        button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+
 class CreateProjectPage(tk.Frame):
 
     def add(self, controller, project_name, friends_name_list):
