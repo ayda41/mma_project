@@ -380,7 +380,7 @@ class EasySplit(tk.Tk):
 
         self.frames = {}
 
-        for F in (MenuPage, MyLedgerPage, BalancePage, AnalyticPage, AccountPage, CreateProjectPage, LogIn, SignUpPage, CreatePersoTransac, ProjectListPage, ProjectPage, FriendsPage, CreateTransacPage):
+        for F in (MenuPage, MyLedgerPage, BalancePage, AnalyticPage, AccountPage, CreateProjectPage, LogIn, SignUpPage, CreatePersoTransac, ProjectListPage, ProjectPage, FriendsPage, CreateTransacPage, SavingPage):
 
             frame = F(container, self)
 
@@ -941,7 +941,6 @@ class AnalyticPage(tk.Frame):
     global categories
     
     def update(self, controller):
-        MonthEntry.set('Jan')
         self.plotcanvas.destroy()
         self.plotcanvas = Canvas(self.reportcanvas, height = 15, bg = 'SteelBlue1')
         self.plotcanvas.pack() 
@@ -1018,6 +1017,10 @@ class AnalyticPage(tk.Frame):
                             command=lambda: self.week(controller, str(MonthEntry.get()), int(YearEntry.get())))
         button2.pack(padx=5, side=LEFT)
         
+        button2 = tk.Button(buttoncanvas, text="Saving suggestions",
+                            command=lambda: controller.show_frame(SavingPage))
+        button2.pack(padx=5, side=LEFT)
+        
         Monthrow = Frame(self, width = 25, bg = 'SteelBlue1')
         MonthLabel = Label(Monthrow, text = 'Choose Month', anchor='w', bg = 'SteelBlue1')
         Monthrow.pack(side=TOP, padx=5, pady=3)
@@ -1046,6 +1049,57 @@ class AnalyticPage(tk.Frame):
         button3 = tk.Button(self, text="Return",
                             command=lambda: controller.show_frame(MenuPage))
         button3.pack()
+
+
+class SavingPage(tk.Frame):
+    
+    
+    def reveal(self, controller):
+        sug = save_suggestions(controller.user, str(MonthEntry.get()), int(YearEntry.get()), profileEntry.get(), int(amountSaveEntry.get()))
+        print (sug)
+        self.text_box.config(state=NORMAL)
+        self.text_box.delete('1.0', END)
+        self.text_box.insert("end", str(sug))
+        self.text_box.see("end")
+        self.text_box.config(state=DISABLED)
+    
+    
+    def __init__(self, parent, controller):
+        
+        profiles_list = ['student', 'Working>50000', 'Working<50000']
+        
+        global profileEntry
+        global amountSaveEntry
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue1')
+        
+        amountSaverow = Frame(self, bg = 'SteelBlue1')
+        amountSaveLabel = Label(amountSaverow, text = 'Amount: ', anchor='w', bg = 'SteelBlue1')
+        amountSaveEntry = Entry(amountSaverow)
+        amountSaverow.pack(side=TOP, fill=X, padx=5, pady=3)
+        amountSaveLabel.pack(side = LEFT)
+        amountSaveEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        profilerow = Frame(self, width = 25, bg = 'SteelBlue1')
+        profileLabel = Label(profilerow, text = 'Choose profile', anchor='w', bg = 'SteelBlue1')
+        profilerow.pack(side=TOP, padx=5, pady=3)
+        profileLabel.pack(side = LEFT, anchor = N, fill=Y)
+        
+        profileEntry = StringVar()
+        profileEntry.set("student")
+        
+        m = OptionMenu(profilerow, profileEntry, *profiles_list)
+        m.pack(ipadx=5, side=LEFT)
+        
+        self.text_box = Text(self, height = 20, width = 80, state=DISABLED, bg = 'SteelBlue1')
+        self.text_box.pack(pady =10, side = TOP, fill = Y, expand = False)
+        
+        button1 = tk.Button(self, text='Give me suggestions', command=lambda: self.reveal(controller))
+        button1.pack()
+        
+        button3 = tk.Button(self, text="Back to Menu",
+                           command=lambda: controller.show_frame(MenuPage))
+        button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
 
 
 class Checkbar(tk.Frame):
@@ -1855,3 +1909,4 @@ class LogIn(tk.Frame):
 if __name__ == "__main__":
     app = EasySplit()
     app.mainloop()
+
