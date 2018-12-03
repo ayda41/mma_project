@@ -1338,6 +1338,127 @@ class FriendsPage(tk.Frame):
         button4 = tk.Button(self, text="Back to Menu",
                            command=lambda: controller.show_frame(MenuPage))
         button4.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
+class AnalyticPage(tk.Frame):
+    global categories
+    def month(self, controller,month,year):
+        M=get_reports_monthly(controller.user, month, year)
+        user_database = shelve.open('user_database')
+        user_database[controller.user_name] =  controller.user
+        f=Figure(figsize=(5,5),dpi=100)
+        a=f.add_subplot(111)
+        user_database.close()
+        lists = sorted(M.items()) 
+        x, y = zip(*lists)
+        width=.25
+        #a.set_xticklabels(categories)
+        a.bar(x,y)
+        a.set_xticklabels(x, rotation= 45 )
+        canvas=FigureCanvasTkAgg(f,self)
+        canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
+    
+    def week(self, controller,month,year):
+        transactions=get_reports_weekly(controller.user, month, year)
+        user_database = shelve.open('user_database')
+        user_database[controller.user_name] =  controller.user
+        user_database.close()  
+        x = []
+        for key, values in transactions.items():
+            for item, item_values in values.items():
+                x.append(item)
+                x = list(set(list(x)))
+
+        week_values = []
+        for i in transactions.values():
+            f = Figure(figsize=(5,5), dpi=100)
+            a = f.add_subplot(111)
+
+            lists = sorted(i.items()) # sorted by key, return a list of tuples
+            x, y = zip(*lists) # unpack a list of pairs into two tuples
+
+            a.plot(x, y)
+            
+            canvas=FigureCanvasTkAgg(f,self)
+            canvas.show()
+            canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
+        
+        
+        
+        
+        #lists = sorted(transactions.items()) 
+        #x, y = zip(*lists)
+        #for i in transactions.keys():
+                                    
+         
+        #a.bar(range(len(new_list)), list(new_list.values()), width = 0.5)
+        #a.set_xtickslabels(x, rotation = 45)
+        #canvas=FigureCanvasTkAgg(f,self)
+        #canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
+            
+        #axes.set_xticks(ticks, minor=False)
+        
+        self.text_box.config(state=NORMAL)
+        self.text_box.delete('1.0', END)
+        self.text_box.insert("end", str(transactions))
+        self.text_box.see("end")
+        self.text_box.config(state=DISABLED)
+    
+        
+
+    def __init__(self, parent, controller):
+        
+        tk.Frame.__init__(self, parent)
+        
+        
+        
+        label = tk.Label(self, text="Analytics", font=LARGE_FONT)
+        label.pack(pady=10,padx=10)
+        global categories
+        global months
+        global MonthEntry
+        global YearEntry
+        
+        tk.Frame.__init__(self, parent)
+        
+        button0 = tk.Button(self, text="Back to Home",
+                            command=lambda: controller.show_frame(MenuPage))
+        button0.pack()
+        
+        label = tk.Label(self, text="Get Expenditure report", font=LARGE_FONT)
+        label.pack(pady=10,padx=10)
+        self.text_box = Text(self, height = 20, width = 80, state=DISABLED, bg = 'SteelBlue1')
+        self.text_box.pack(pady =10, side = BOTTOM, fill = Y, expand = False)
+        
+        Monthrow = Frame(self, bg = 'white')
+        MonthLabel = Label(Monthrow, text = 'Enter Month (Jan,feb..)', anchor='w')
+        MonthEntry = Entry(Monthrow)
+        Monthrow.pack(side=TOP, fill=X, padx=5, pady=3)
+        MonthLabel.pack(side = LEFT, anchor = N)
+        MonthEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        Yearrow = Frame(self, bg='white')
+        YearLabel = Label(Yearrow, text = 'Enter Year(2017,2018... )', anchor='w')
+        YearEntry = Entry(Yearrow)
+        Yearrow.pack(side=TOP, fill=X, padx=5, pady=3)
+        YearLabel.pack(side = LEFT)
+        YearEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        
+        MonthEntry.delete(0, END)
+        YearEntry.delete(0, END)
+    
+                    
+        button1 = tk.Button(self, text="Get Monthly",
+                            command=lambda: self.month(controller, str(MonthEntry.get()), int(YearEntry.get())))
+        button1.pack()
+        
+        button2 = tk.Button(self, text="Get Weekly",
+                            command=lambda: self.week(controller, str(MonthEntry.get()), int(YearEntry.get())))
+        button2.pack()
+        
+        button3 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(MenuPage))
+        button3.pack()
+    
 
 class CreateTransacPage(tk.Frame):
     
