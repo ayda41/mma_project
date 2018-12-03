@@ -607,6 +607,66 @@ class MenuPage(tk.Frame):
         button8.pack(ipadx= 1, pady =3, padx = 5, side = BOTTOM, anchor = SW)
         
 
+
+    class CreatePersoTransac(tk.Frame):
+    
+    def add(self, controller, amount, description, category):
+        create_personal_transaction(controller.user, amount, description, category)
+        user_database = shelve.open('user_database')
+        user_database[controller.user_name] =  controller.user
+        user_database.close()
+        controller.show_frame(MyLedgerPage)
+        controller.frames[MyLedgerPage].transaction_list(controller)
+
+    
+    def __init__(self, parent, controller):
+        
+        global categories
+        global amountEntry
+        global descriptionEntry
+        
+        tk.Frame.__init__(self, parent)
+        
+        label = tk.Label(self, text="Add a new personal expense", font=LARGE_FONT)
+        label.pack(pady=10,padx=10)
+        
+        descriptionrow = Frame(self, bg = 'white')
+        descriptionLabel = Label(descriptionrow, text = 'Description: ', anchor='w')
+        descriptionEntry = Entry(descriptionrow)
+        descriptionrow.pack(side=TOP, fill=X, padx=5, pady=3)
+        descriptionLabel.pack(side = LEFT, anchor = N)
+        descriptionEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        amountrow = Frame(self, bg='white')
+        amountLabel = Label(amountrow, text = 'Amount: ', anchor='w')
+        amountEntry = Entry(amountrow)
+        amountrow.pack(side=TOP, fill=X, padx=5, pady=3)
+        amountLabel.pack(side = LEFT)
+        amountEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        amountEntry.delete(0, END)
+        descriptionEntry.delete(0, END)
+        
+        MODES = []
+        for cat in categories:
+            MODES.append((cat, cat))
+    
+        v = StringVar()
+        v.set("L") # initialize
+    
+        for text, mode in MODES:
+            b = Radiobutton(self, text=text,
+                            variable=v, value=mode)
+            b.pack(side = TOP, anchor=W)
+                    
+        button1 = tk.Button(self, text="Add",
+                            command=lambda: self.add(controller, float(amountEntry.get()), str(descriptionEntry.get()), str(v.get())))
+        button1.pack()
+        
+        button2 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(MyLedgerPage))
+        button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+        
 class CreateProjectPage(tk.Frame):
 
     def add(self, controller, project_name, friends_name_list):
