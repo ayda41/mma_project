@@ -481,6 +481,131 @@ class EasySplit(tk.Tk):
             raise ValueError('The project does not exist.')
         project_database.close()
 
+class MenuPage(tk.Frame):
+    
+    def clear_canvas(self):
+        self.canvas.destroy()
+        self.canvas = Canvas(self, bg = 'SteelBlue2')
+        self.canvas.pack(side = LEFT, anchor=N,  expand = YES, fill = BOTH)
+    
+    def show_user_info(self, controller):
+        self.clear_canvas()
+        sublabel = tk.Label(self.canvas, text="Username: " + controller.user.name, anchor="w", font=SMALL_FONT,  bg = 'SteelBlue2')
+        sublabel.pack(pady=10,padx=10)
+        
+        sublabel1 = tk.Label(self.canvas, text="Email: " + controller.user.email, anchor="w", font=SMALL_FONT,  bg = 'SteelBlue2')
+        sublabel1.pack(pady=10,padx=10)
+        
+        user_login = shelve.open('user_login')
+
+        sublabel2 = tk.Label(self.canvas, text="Password: " + str(user_login[str(controller.user.name)]), anchor="w", font=SMALL_FONT,  bg = 'SteelBlue2')
+        sublabel2.pack(pady=10,padx=10)
+        
+        user_login.close()
+        
+        button = tk.Button(self.canvas, text="Change information",
+                            command=lambda: controller.show_frame(AccountPage), bg = 'light sky blue')
+        button.pack(pady =5, padx = 5, side = TOP, anchor = N)
+     
+
+    def update(self, controller):
+        self.clear_canvas()
+        text_box = Text(self.canvas, state=DISABLED, bg = 'SteelBlue2')
+        text_box.pack(side = TOP, fill = Y, expand = YES)
+        text_box.config(state=NORMAL)
+        text_box.insert("end", 'Update in progress...')
+        text_box.see("end")
+        text_box.config(state=DISABLED)
+        user_database = shelve.open('user_database')
+        controller.user = user_database[controller.user_name]
+        user_database.close()
+        text_box.config(state=NORMAL)
+        text_box.insert("end", '\nUpdated!')
+        text_box.see("end")
+        text_box.config(state=DISABLED)
+    
+    def show_friends(self, controller):
+        controller.frames[FriendsPage].update_friends(controller)
+        controller.show_frame(FriendsPage)
+        
+    def show_balance(self, controller):
+        controller.frames[BalancePage].reveal(controller)
+        controller.show_frame(BalancePage)
+        
+    def create_project(self, controller):
+        controller.frames[CreateProjectPage].update(controller)
+        controller.show_frame(CreateProjectPage)
+    
+    def project_list(self, controller):
+        controller.frames[ProjectListPage].update(controller)
+        controller.frames[ProjectListPage].show_list(controller)
+        controller.show_frame(ProjectListPage)
+    
+    def logout(self, controller):
+        
+        user_database = shelve.open('user_database')
+        user_database[controller.user_name] = controller.user
+        user_database.close()
+        controller.user_name = 'default'
+        controller.user = User('default', 'default')
+        actEntry.delete(0, END)
+        pinEntry.delete(0, END)
+        controller.frames[LogIn].text_box.config(state=NORMAL)
+        controller.frames[LogIn].text_box.delete('1.0', END)
+        controller.frames[LogIn].text_box.see("end")
+        controller.frames[LogIn].text_box.config(state=DISABLED)
+        controller.show_frame(LogIn)
+    
+
+    def __init__(self, parent, controller):
+        
+        tk.Frame.__init__(self,parent, bg = 'SteelBlue1')
+        
+        label = tk.Label(self, text="MENU", font=LARGE_FONT, bg = 'SteelBlue1')
+        label.pack(pady=10,padx=10, anchor=NW)
+        
+        canvas1 = Canvas(self, bg = 'SteelBlue1')
+        canvas1.pack(side = LEFT, anchor=NW, fill = Y)
+        
+        self.canvas = Canvas(self, bg = 'SteelBlue2')
+        self.canvas.pack(side = LEFT, anchor=N,  expand = YES, fill = BOTH)
+
+        
+        button1 = tk.Button(canvas1, text="Account\nInformation",
+                            command=lambda: self.show_user_info(controller), bg='light sky blue')
+        button1.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        button2 = tk.Button(canvas1, text="My Balance",
+                            command=lambda: self.show_balance(controller), bg='light sky blue')
+        button2.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        button9 = tk.Button(canvas1, text="Other users",
+                            command=lambda: self.show_friends(controller), bg='light sky blue')
+        button9.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        button3 = tk.Button(canvas1, text="Create a Project",
+                            command=lambda: self.create_project(controller), bg='light sky blue')
+        button3.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+
+        button4 = tk.Button(canvas1, text="My Projects",
+                           command=lambda: self.project_list(controller), bg='light sky blue')
+        button4.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+
+        button5 = tk.Button(canvas1, text="My Ledger",
+                            command=lambda: controller.show_frame(MyLedgerPage), bg='light sky blue')
+        button5.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        button6 = tk.Button(canvas1, text="My stats",
+                            command=lambda: controller.show_frame(AnalyticPage), bg='light sky blue')
+        button6.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        button7 = tk.Button(canvas1, text='Update', command=lambda: self.update(controller), bg='light sky blue')
+        button7.pack(pady =3, padx = 5, side = TOP, anchor = NW, fill = X)
+        
+        
+        button8 = tk.Button(canvas1, text='Log out', command=lambda: self.logout(controller), bg='light salmon')
+        button8.pack(ipadx= 1, pady =3, padx = 5, side = BOTTOM, anchor = SW)
+        
 
 
 class SignUpPage(tk.Frame):
