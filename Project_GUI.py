@@ -740,6 +740,37 @@ class AccountPage(tk.Frame):
         button3 = tk.Button(self, text="Back to Home",
                            command=lambda: self.back_home(controller))
         button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+        
+class FriendsPage(tk.Frame):
+    
+    def update_friends(self, controller):
+        self.frame.destroy()
+        self.frame = tk.Frame(self.canvas, relief=SUNKEN)
+        self.frame.pack()
+        for friend in controller.user.friends:
+            label = tk.Label(self.frame, text=friend.name, font=('Verdana', 12))
+            label.pack(pady=5,padx=10)
+    
+    def __init__(self, parent, controller):
+        
+        tk.Frame.__init__(self, parent)
+        
+        label = tk.Label(self, text="Other users", font=LARGE_FONT)
+        label.pack(pady=5,padx=10)
+        
+        sublabel = tk.Label(self, text="You are not alone", font=('Arial', 10))
+        sublabel.pack(pady=10,padx=10)
+        
+        self.canvas = Canvas(self, relief=SUNKEN)
+        self.canvas.pack()
+        self.frame = tk.Frame(self.canvas)
+        self.frame.pack()
+        
+        
+        button4 = tk.Button(self, text="Back to Menu",
+                           command=lambda: controller.show_frame(MenuPage))
+        button4.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
+
 
 
 
