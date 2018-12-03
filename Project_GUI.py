@@ -770,6 +770,235 @@ class FriendsPage(tk.Frame):
         button4 = tk.Button(self, text="Back to Menu",
                            command=lambda: controller.show_frame(MenuPage))
         button4.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
+class CreateTransacPage(tk.Frame):
+    
+    def add(self, controller):
+        people_names = self.checkboxList.state()
+        payer_name = self.payer.get()
+        method = self.method.get()
+        category_name = self.category.get()
+        print(method)
+        
+        
+        if method == 'equal':
+            if people_names != ['0' for i in range(len(people_names))]:
+                people = []
+                user_database = shelve.open('user_database')
+                for name in people_names:
+                    if name != '0' :
+                        people.append(user_database[name])
+                user_database.close()
+            
+            if payer_name != '0':
+                user_database = shelve.open('user_database')
+                payer = user_database[payer_name]
+                user_database.close()
+                
+            if category_name != '0':
+                category = category_name
+            
+            create_transaction(controller.project, float(amount2Entry.get()), people, payer, method, description2Entry.get(), category)
+            project_database = shelve.open('project_name')
+            project_database[controller.project.project_name] = controller.project
+            project_database.close()
+            
+            print('Transac added')
+            controller.show_frame(ProjectPage)    
+            controller.frames[ProjectPage].transaction_list(controller)
+        
+        if method == 'unequal':
+            self.show_splitcanvas(controller)
+    
+    def update(self, controller):
+        self.update_entries(controller)
+        self.update_userscanvas(controller)
+    
+    def update_entries(self, controller):
+        amount2Entry.delete(0, END)
+        description2Entry.delete(0, END)
+    
+    def update_userscanvas(self, controller):
+        self.peoplecanvas.destroy()
+        self.payercanvas.destroy()
+        self.methodcanvas.destroy()
+        self.splitcanvas.destroy()
+        
+        self.peoplecanvas = Canvas(self.userscanvas, height =8, bg = 'SteelBlue2')
+        self.peoplecanvas.pack(side=TOP, fill=X, ipady=2, ipadx=2, anchor=N)
+        
+        self.peoplestatus = False
+        
+        self.payercanvas = Canvas(self.userscanvas, height = 3, bg = 'SteelBlue2')
+        self.payercanvas.pack(side=TOP, fill=X, ipady=2, ipadx=2, anchor=N)
+        
+        self.payerstatus = False
+        
+        self.methodcanvas = Canvas(self.userscanvas, height = 3, bg = 'SteelBlue2')
+        self.methodcanvas.pack(side=TOP, fill=X, ipady=2, ipadx=2, anchor=N)
+        
+        self.methodstatus = False
+        
+        self.splitcanvas = Canvas(self.userscanvas, height = 8, bg = 'SteelBlue2')
+        self.splitcanvas.pack(side=TOP, fill=X, ipady=2, ipadx=2, anchor=N)
+        
+        self.splitstatus = False
+        
+        self.show_userscanvas(controller)
+    
+    def show_splitcanvas(self, controller):
+        if not self.splitstatus:
+            people_name = self.checkboxList.state()
+            splitEntry = []
+            for name in people_name:
+                if name != '0':
+                    splitrow = Frame(self.splitcanvas, bg = 'SteelBlue2')
+                    splitLabel = Label(description2row, text = str(name) + ': ', anchor='w', bg = 'SteelBlue2')
+                    splitEntry.append(Entry(splitrow))
+                    splitrow.pack(side=TOP, fill=X, padx=5, pady=3)
+                    splitLabel.pack(side = LEFT, anchor = N)
+                    splitEntry[-1].pack(side=RIGHT, expand=YES, fill=X)
+            self.splitstatus = True
+    
+    def show_userscanvas(self, controller):
+        self.show_people(controller)
+        self.show_payer(controller)
+        self.show_method(controller)
+    
+    def show_people(self, controller):
+        if not self.peoplestatus:
+            label = Label(self.peoplecanvas, text='Select the involved users', font=SMALL_FONT, bg = 'SteelBlue2')
+            label.pack(pady=5, side=TOP)
+            sharers = []
+            users_name_list = []
+            for user in controller.project.project_users:
+                sharers.append((user.name, user.name))
+                users_name_list.append(user.name)
+
+            self.checkboxList = Checkbar(self.peoplecanvas, users_name_list)
+            self.checkboxList.pack(side=TOP)
+            self.peoplestatus = True
+    
+    def show_payer(self, controller):
+        if not self.payerstatus:
+            label = Label(self.payercanvas, text='Select the payer', font=SMALL_FONT, bg = 'SteelBlue2')
+            label.pack(pady=5, side=TOP)
+            payers = []
+            for user in controller.project.project_users:
+                payers.append((user.name, user.name))
+        
+            self.payer = StringVar()
+            self.payer.set("0")
+            
+            for text, mode in payers:
+                c = Radiobutton(self.payercanvas, text=text,
+                                variable=self.payer, value=mode, bg = 'SteelBlue2')
+                c.pack(side = TOP)
+            self.payerstatus = True
+    
+    def show_method(self, controller):
+        if not self.methodstatus:
+            label = Label(self.methodcanvas, text='Select the split method', font=SMALL_FONT, bg = 'SteelBlue2')
+            label.pack(pady=5, side=TOP)
+            methods = [('equal', 'equal'),('unequal', 'unequal')]
+            
+            self.method = StringVar()
+            self.method.set("0")
+            
+            for text, mode in methods:
+                c = Radiobutton(self.methodcanvas, text=text,
+                                variable=self.method, value=mode, bg = 'SteelBlue2')
+                c.pack(side = TOP)
+            self.methodstatus = True
+    
+    def __init__(self, parent, controller):
+        
+        global categories
+        global amount2Entry
+        global description2Entry
+        
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue2')
+        
+        label = tk.Label(self, text="Add a new transaction", font=LARGE_FONT, bg = 'SteelBlue2')
+        label.pack(pady=10,padx=10)
+        
+        description2row = Frame(self, bg = 'SteelBlue2')
+        description2Label = Label(description2row, text = 'Description: ', anchor='w', bg = 'SteelBlue2')
+        description2Entry = Entry(description2row)
+        description2row.pack(side=TOP, fill=X, padx=5, pady=3)
+        description2Label.pack(side = LEFT, anchor = N)
+        description2Entry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        amount2row = Frame(self, bg = 'SteelBlue2')
+        amount2Label = Label(amount2row, text = 'Amount: ', anchor='e', bg = 'SteelBlue2')
+        amount2Entry = Entry(amount2row)
+        amount2row.pack(side=TOP, fill=X, padx=5, pady=3)
+        amount2Label.pack(ipadx= 8, side = LEFT)
+        amount2Entry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        amount2Entry.delete(0, END)
+        description2Entry.delete(0, END)
+        
+        categorycanvas = Canvas(self, height = 8, bg = 'SteelBlue2')
+        categorycanvas.pack(pady=5)
+    
+        frame = tk.Frame(categorycanvas, bg = 'SteelBlue2')
+        frame.pack()
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_rowconfigure(0, weight=1)
+        
+        
+        radiocanvas = Canvas(frame, bg = 'SteelBlue2')
+        radiocanvas.grid(row=0, column=0, ipady=2, ipadx=2)
+        
+        catLabel = Label(radiocanvas, text = 'Category:', bg = 'SteelBlue2')
+        catLabel.pack(side = TOP, anchor = W)
+        
+        MODES = []
+        for cat in categories:
+            MODES.append((cat, cat))
+    
+        self.category = StringVar()
+        self.category.set("0") # initialize
+    
+        for text, mode in MODES:
+            b = Radiobutton(radiocanvas, text=text,
+                            variable=self.category, value=mode, bg = 'SteelBlue2')
+            b.pack(side = TOP, anchor=W)
+                    
+        
+        self.userscanvas = Canvas(frame, bg = 'SteelBlue2')
+        self.userscanvas.grid(row=0, column=1)
+        
+        self.peoplecanvas = Canvas(self.userscanvas, height =8, bg = 'SteelBlue2')
+        self.peoplecanvas.pack(side=TOP)
+        
+        self.peoplestatus = False
+        
+        self.payercanvas = Canvas(self.userscanvas, height = 3, bg = 'SteelBlue2')
+        self.payercanvas.pack(side=TOP)
+        
+        self.payerstatus = False
+        
+        self.methodcanvas = Canvas(self.userscanvas, height = 3, bg = 'SteelBlue2')
+        self.methodcanvas.pack(side=TOP)
+        
+        self.methodstatus = False
+        
+        self.splitcanvas = Canvas(self.userscanvas, height = 8, bg = 'SteelBlue2')
+        self.splitcanvas.pack(side=TOP)
+        
+        self.splitstatus = False
+        
+        button1 = tk.Button(self, text="Add",
+                            command=lambda: self.add(controller))
+        button1.pack()
+        
+        button2 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(ProjectPage))
+        button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+
 
 
 
