@@ -1356,45 +1356,25 @@ class AnalyticPage(tk.Frame):
         canvas=FigureCanvasTkAgg(f,self)
         canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
     
-    def week(self, controller,month,year):
-        transactions=get_reports_weekly(controller.user, month, year)
-        user_database = shelve.open('user_database')
-        user_database[controller.user_name] =  controller.user
-        user_database.close()  
-        x = []
-        for key, values in transactions.items():
-            for item, item_values in values.items():
-                x.append(item)
-                x = list(set(list(x)))
-
-        week_values = []
-        for i in transactions.values():
-            f = Figure(figsize=(5,5), dpi=100)
-            a = f.add_subplot(111)
-
-            lists = sorted(i.items()) # sorted by key, return a list of tuples
-            x, y = zip(*lists) # unpack a list of pairs into two tuples
-
-            a.plot(x, y)
-            
-            canvas=FigureCanvasTkAgg(f,self)
-            canvas.show()
-            canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
-        
-        
-        
-        
-        #lists = sorted(transactions.items()) 
-        #x, y = zip(*lists)
-        #for i in transactions.keys():
-                                    
-         
-        #a.bar(range(len(new_list)), list(new_list.values()), width = 0.5)
-        #a.set_xtickslabels(x, rotation = 45)
-        #canvas=FigureCanvasTkAgg(f,self)
-        #canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
-            
-        #axes.set_xticks(ticks, minor=False)
+   def week(self, controller,month,year):
+       transactions=get_reports_weekly(controller.user, month, year)
+       user_database = shelve.open('user_database')
+       user_database[controller.user_name] =  controller.user
+       f=Figure(figsize=(5,5),dpi=100)
+       a=f.add_subplot(111)
+       user_database.close()
+       y = []
+       for i in transactions.values():
+           y.append(sum(i.values()))
+       x = []
+       for i in transactions.keys():
+           x.append(i)
+       print(x)
+       width=.25
+       a.bar(x,y)
+       a.set_xticklabels(x, rotation= 45 )
+       canvas=FigureCanvasTkAgg(f,self)
+       canvas.get_tk_widget().pack(side=tk.TOP,fill=tk.BOTH, expand=True)
         
         self.text_box.config(state=NORMAL)
         self.text_box.delete('1.0', END)
