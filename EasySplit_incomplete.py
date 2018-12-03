@@ -128,9 +128,16 @@ def save_suggestions(user,month, year,class_existence,amount_save):
     for i in categories:
         if Exp_prevmonth[i]-max_allowance[class_existence][i]>0:
             curr_exp_over_class[i]= Exp_prevmonth[i]-max_allowance[class_existence][i]
-        percent_exp[i]=Exp_prevmonth[i]/sum(Exp_prevmonth.values())
-    for i in categories:    
-        bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
+        if sum(Exp_prevmonth.values()) == 0:
+            percent_exp[i] = 0
+        
+        else:
+            percent_exp[i]=Exp_prevmonth[i]/sum(Exp_prevmonth.values())
+    for i in categories:
+        if sum(curr_exp_over_class.values())*amount_save != 0 :
+            bud_sug[i]=curr_exp_over_class[i]/sum(curr_exp_over_class.values())*amount_save
+        else:
+            bud_sug[i]=0
         bud_sug [i]=f'you can reduce expenditure by: ${bud_sug[i]}'
     return bud_sug
 
@@ -1056,10 +1063,10 @@ class SavingPage(tk.Frame):
     
     def reveal(self, controller):
         sug = save_suggestions(controller.user, str(MonthEntry.get()), int(YearEntry.get()), profileEntry.get(), int(amountSaveEntry.get()))
-        print (sug)
         self.text_box.config(state=NORMAL)
         self.text_box.delete('1.0', END)
-        self.text_box.insert("end", str(sug))
+        for cat in sug:
+            self.text_box.insert("end", str(cat) + ': ' + str(sug[cat]) + '\n')
         self.text_box.see("end")
         self.text_box.config(state=DISABLED)
     
@@ -1098,7 +1105,7 @@ class SavingPage(tk.Frame):
         button1.pack()
         
         button3 = tk.Button(self, text="Back to Menu",
-                           command=lambda: controller.show_frame(MenuPage))
+                           command=lambda: controller.show_frame(AnalyticPage))
         button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
 
 
@@ -1909,4 +1916,5 @@ class LogIn(tk.Frame):
 if __name__ == "__main__":
     app = EasySplit()
     app.mainloop()
+
 
