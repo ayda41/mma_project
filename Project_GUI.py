@@ -607,6 +607,283 @@ class MenuPage(tk.Frame):
         button8.pack(ipadx= 1, pady =3, padx = 5, side = BOTTOM, anchor = SW)
         
 
+class CreateProjectPage(tk.Frame):
+
+    def add(self, controller, project_name, friends_name_list):
+        if friends_name_list == ['0' for i in range(len(friends_name_list))]:
+            self.text_box.config(state=NORMAL)
+            self.text_box.delete('1.0', END)
+            self.text_box.insert("end", "Please select a friend.")
+            self.text_box.see("end")
+            self.text_box.config(state=DISABLED)
+        
+        if project_name == '' :
+            self.text_box.config(state=NORMAL)
+            self.text_box.delete('1.0', END)
+            self.text_box.insert("end", "Please name your project.")
+            self.text_box.see("end")
+            self.text_box.config(state=DISABLED)
+        
+        if friends_name_list != ['0' for i in range(len(friends_name_list))] and project_name != '' :
+            friends_list = []
+            user_database = shelve.open('user_database')
+            for name in friends_name_list:
+                if name != '0' :
+                    friends_list.append(user_database[name])
+            user_database.close()
+            friends_list.append(controller.user)
+            
+            project = Project(project_name, friends_list)
+            project_database = shelve.open('project_database')
+            
+            if project_name in project_database:
+                self.text_box.config(state=NORMAL)
+                self.text_box.delete('1.0', END)
+                self.text_box.insert("end", "The name is taken.")
+                self.text_box.see("end")
+                self.text_box.config(state=DISABLED)
+                
+            else:
+                project_database[project.project_name] = project
+        
+                print('Project created')
+                
+                user_database = shelve.open('user_database')
+                
+                for friend in friends_list:
+                    friend.add_project(project)
+                    user_database[friend.name] = friend
+                
+                print('Project added to users')
+    
+            user_database.close()
+            project_database.close()
+            
+            controller.set_project(project.project_name)
+            controller.frames[ProjectPage].update_label(controller)
+            controller.show_frame(ProjectPage)
+
+    def update(self, controller):
+        projectNameEntry.delete(0, END)
+        self.friendCanvas.destroy()
+        self.friendCanvas = Canvas(self.canvas, bg = 'SteelBlue2')
+        self.friendCanvas.pack(side = TOP)
+        self.status = False
+        self.choose_friends(controller)
+    
+    def choose_friends(self, controller):
+        if not self.status:
+            BFF = []
+            friend_name_list = []
+            for friend in controller.user.friends:
+                BFF.append((friend.name, friend.name))
+                print(friend.name)
+                friend_name_list.append(friend.name)
+
+            self.checkboxList = Checkbar(self.friendCanvas, friend_name_list)
+            self.checkboxList.pack()
+
+            self.status = True
+    
+    def __init__(self, parent, controller):
+        
+        global projectNameEntry
+        
+        self.status = False
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue2')
+        
+        label = tk.Label(self, text="Create new project", font=LARGE_FONT, bg = 'SteelBlue2')
+        label.pack(pady=10,padx=10)
+        
+        projectNameRow = Frame(self, bg = 'SteelBlue2')
+        projectNameLabel = Label(projectNameRow, text = 'Project name: ', anchor='w', bg = 'SteelBlue2')
+        projectNameEntry = Entry(projectNameRow)
+        projectNameRow.pack(side=TOP, fill=X, padx=5, pady=3)
+        projectNameLabel.pack(side = LEFT, anchor = N)
+        projectNameEntry.pack(side=RIGHT, expand=YES, fill=X)
+        
+        projectNameEntry.delete(0, END)
+        
+        label = tk.Label(self, text="Choose friends", font=SMALL_FONT, bg = 'SteelBlue2')
+        label.pack(pady=10,padx=10)
+        
+        self.canvas = Canvas(self, bg = 'SteelBlue2')
+        self.canvas.pack(side=TOP)
+        
+        self.friendCanvas = Canvas(self.canvas, bg = 'SteelBlue2')
+        self.friendCanvas.pack(side = TOP)
+        
+        button2 = tk.Button(self, text="Create the project",
+                            command=lambda: self.add(controller, projectNameEntry.get(), self.checkboxList.state()))
+        button2.pack(pady=10)
+        
+        self.text_box = Text(self, height = 1, width = 30, state=DISABLED, bg='SteelBlue2')
+        self.text_box.pack(pady =10, side = TOP, fill = Y, expand = False)
+        
+        button3 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(MenuPage))
+        button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+
+class ProjectListPage(tk.Frame):
+    
+    def clear_canvas(self):
+        self.main_canvas.destroy()
+        self.main_canvas = Canvas(self.canvas, bg = 'SteelBlue2')
+        self.main_canvas.pack(fill=X, expand=YES)
+    
+    def update(self, controller):
+        self.clear_canvas()
+        self.status = False
+        self.show_list(controller)
+        
+    def show_project(self, controller, project):
+        controller.set_project(project.project_name)
+        controller.frames[ProjectPage].update_label(controller)
+        controller.show_frame(ProjectPage)
+    
+    def show_list(self, controller):
+        if not self.status:
+            if controller.user.user_projects != []:
+                self.buttons = []
+                for project in controller.user.user_projects :
+                    row = tk.Frame(self.main_canvas, height = 30, bg = 'SteelBlue2', relief=RIDGE)
+                    row.pack(fill = X, side=TOP, pady=2)
+                    self.buttons.append(tk.Button(row, text=str(project.project_name),
+                                command=lambda c=controller, p=project: self.show_project(c, p), width = 25, bg = 'SteelBlue3'))
+                    self.buttons[-1].pack(side = LEFT)
+                    user_list_text = ' |  '
+                    for user in project.project_users:
+                        user_list_text += str(user.name) + '  |  '
+                    label = tk.Label(row, text=str(user_list_text), font=("Arial", 9), width = 40, bg = 'SteelBlue2', relief=RIDGE)
+                    label.pack(ipady=2, side = LEFT, fill=X, expand=YES)
+            else:
+                row = tk.Frame(self.main_canvas, height = 30, relief=RIDGE, bg = 'SteelBlue2')
+                row.pack(fill = X, side=TOP)
+                label = tk.Label(row, text='You currently have no project.', font=("Arial", 9), width = 40, bg = 'SteelBlue2', relief=RIDGE)
+                label.pack(ipady=2, side = TOP, fill=X, expand=YES)
+            self.status = True
+
+    def __init__(self, parent, controller):
+        
+        self.status = False
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue2')
+        
+        label = tk.Label(self, text="Choose a project", font=LARGE_FONT, bg = 'SteelBlue2')
+        label.pack(pady=8,padx=10)
+
+        sublabel = tk.Label(self, text="click on name", font=("Arial", 10), bg = 'SteelBlue2')
+        sublabel.pack(pady=7,padx=10)
+        
+        self.canvas = Canvas(self, bg = 'SteelBlue2')
+        self.canvas.pack()
+        
+        self.main_canvas = Canvas(self.canvas, bg = 'SteelBlue2')
+        self.main_canvas.pack(fill=X, expand=YES)
+        
+        scrollbar = Scrollbar(self.main_canvas)    
+        scrollbar.pack(side=RIGHT, fill=Y) 
+        
+        scrollbar.config(command=self.main_canvas.yview) 
+        self.main_canvas.config(yscrollcommand=scrollbar.set) 
+                    
+        button2 = tk.Button(self, text="Return",
+                            command=lambda: controller.show_frame(MenuPage))
+        button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+
+
+class ProjectPage(tk.Frame):
+    
+    def update_label(self, controller):
+        text1 = str(controller.project.project_name)
+        user_list_text = ' |  '
+        for user in controller.project.project_users:
+            user_list_text += str(user.name) + '  |  '
+        self.label.destroy()
+        self.sublabel.destroy()
+        self.balanceLabel.destroy()
+        self.label = tk.Label(self.label_row, text=text1, font=LARGE_FONT, bg = 'SteelBlue2')
+        self.label.pack(pady=8,padx=10)
+        self.sublabel = tk.Label(self.label_row, text= user_list_text, font=('Arial', 10), bg = 'SteelBlue2')
+        self.sublabel.pack(pady=1,padx=10)
+        self.balanceLabel = tk.Label(self.canvas1, text=str(controller.project.print_balance()), font=('Arial', 10), bg = 'SteelBlue2')
+        self.balanceLabel.pack(side = TOP, fill=Y)
+    
+    def back(self, controller):
+        controller.project  = Project('default', [])
+        controller.show_frame(ProjectListPage)
+        
+    def add_transac(self, controller):
+        controller.frames[CreateTransacPage].update(controller)
+        controller.show_frame(CreateTransacPage)
+    
+    def transaction_list(self, controller):
+        transactions = controller.project.return_transactions()
+        if not transactions.empty:
+            self.ledger_box.config(state=NORMAL)
+            self.ledger_box.delete('1.0', END)
+            self.ledger_box.insert("end", str(transactions))
+            self.ledger_box.see("end")
+            self.ledger_box.config(state=DISABLED)
+        else:
+            self.ledger_box.config(state=NORMAL)
+            self.ledger_box.delete('1.0', END)
+            self.ledger_box.insert("end", 'You have not yet added any personal expense.')
+            self.ledger_box.see("end")
+            self.ledger_box.config(state=DISABLED)
+    
+    def __init__(self, parent, controller):
+        
+        self.status = False
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue2')
+        
+        self.label_row = Canvas(self, bg = 'SteelBlue2')
+        self.label_row.pack(fill=X, ipady=5)
+        
+        self.label = tk.Label(self.label_row, text= 'default', font=LARGE_FONT, bg = 'SteelBlue2')
+        self.label.pack(pady=8,padx=10)
+        
+        self.sublabel = tk.Label(self.label_row, text= 'default', font=LARGE_FONT, bg = 'SteelBlue2')
+        self.sublabel.pack(pady=5,padx=10)
+
+        sublabel1 = tk.Label(self, text="Balance of the project", font=SMALL_FONT, bg = 'SteelBlue2')
+        sublabel1.pack(pady=3,padx=10)
+
+        self.canvas1 = Canvas(self, height = 30, bg = 'SteelBlue2')
+        self.canvas1.pack(pady=5, side=TOP, fill=X, ipadx=8)
+        
+        self.balanceLabel = tk.Label(self.canvas1, text=" ", font=SMALL_FONT, bg = 'SteelBlue2')
+        self.balanceLabel.pack(side = TOP, fill=Y, expand=YES)
+        
+        sublabel2 = tk.Label(self, text="Project Ledger", font=SMALL_FONT, bg = 'SteelBlue2')
+        sublabel2.pack(pady=7,padx=10)
+        
+        self.canvas2 = Canvas(self, height = 12, bg = 'SteelBlue2')
+        self.canvas2.pack(side=TOP, fill=X)
+
+        scrollbar = Scrollbar(self.canvas2)    
+        scrollbar.pack(side=RIGHT, fill=Y) 
+        
+        scrollbar.config(command=self.canvas2.yview) 
+        self.canvas2.config(yscrollcommand=scrollbar.set) 
+        
+        self.ledger_box = Text(self.canvas2, height=15, state=DISABLED, bg = 'SteelBlue2')
+        self.ledger_box.pack(fill=Y, expand=YES)
+        
+        button = tk.Button(self, text="See transactions",
+                            command=lambda: self.transaction_list(controller))
+        button.pack(pady=5, padx=5, side = TOP, anchor=N)
+        
+        button1 = tk.Button(self, text="Add transaction",
+                            command=lambda: self.add_transac(controller))
+        button1.pack(pady=5, padx=5, side = TOP, anchor=N)
+                    
+        button2 = tk.Button(self, text="Return",
+                            command=lambda: self.back(controller))
+        button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+        
 
 class SignUpPage(tk.Frame):
     
@@ -895,6 +1172,7 @@ class FriendsPage(tk.Frame):
         button4 = tk.Button(self, text="Back to Menu",
                            command=lambda: controller.show_frame(MenuPage))
         button4.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
+
 class CreateTransacPage(tk.Frame):
     
     def add(self, controller):
