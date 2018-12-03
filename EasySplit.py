@@ -895,6 +895,15 @@ class BalancePage(tk.Frame):
 
 class FriendsPage(tk.Frame):
     
+    def update_list_friends(self, controller):
+        user_database = shelve.open('user_database')
+        friends_name = [friend.name for friend in controller.user.friends]
+        for name,friend in user_database.items():
+            if name not in friends_name:
+                controller.user.add_friends(friend)
+        user_database.close()
+        self.update_friends(controller)
+        
     def update_friends(self, controller):
         self.frame.destroy()
         self.frame = tk.Frame(self.canvas, relief=SUNKEN, bg = 'SteelBlue1')
@@ -918,10 +927,13 @@ class FriendsPage(tk.Frame):
         self.frame = tk.Frame(self.canvas, bg = 'SteelBlue1')
         self.frame.pack()
         
-        
         button4 = tk.Button(self, text="Back to Menu",
                            command=lambda: controller.show_frame(MenuPage))
         button4.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
+        
+        button5 = tk.Button(self, text="Update friends",
+                           command=lambda: self.update_list_friends(controller))
+        button5.pack(padx=5, pady=5, side = BOTTOM, anchor=SW)
 
 
 class AnalyticPage(tk.Frame):
@@ -1124,7 +1136,6 @@ class CreateProjectPage(tk.Frame):
             friend_name_list = []
             for friend in controller.user.friends:
                 BFF.append((friend.name, friend.name))
-                print(friend.name)
                 friend_name_list.append(friend.name)
 
             self.checkboxList = Checkbar(self.friendCanvas, friend_name_list)
