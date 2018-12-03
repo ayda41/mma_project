@@ -666,6 +666,48 @@ class MenuPage(tk.Frame):
         button2 = tk.Button(self, text="Return",
                             command=lambda: controller.show_frame(MyLedgerPage))
         button2.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
+       
+    class BalancePage(tk.Frame):
+
+    def reveal(self, controller):
+        self.text_box.config(state=NORMAL)
+        self.text_box.delete('1.0', END)
+        status = False
+        for friend, amount in controller.user.balance.items():
+            if amount > 0:
+                status = True
+                self.text_box.config(state=NORMAL)
+                self.text_box.insert("end", "You owe %s: %d \n" % (friend.name, amount))
+                self.text_box.see("end")
+                self.text_box.config(state=DISABLED)
+            if amount < 0 :
+                status = True
+                self.text_box.config(state=NORMAL)
+                self.text_box.insert("end", "%s owe you: %d \n" % (friend.name, -amount))
+                self.text_box.see("end")
+                self.text_box.config(state=DISABLED)
+        if not status:
+            self.text_box.config(state=NORMAL)
+            self.text_box.insert("end", "You owe nothing. \n")
+            self.text_box.see("end")
+            self.text_box.config(state=DISABLED)
+    
+    def __init__(self, parent, controller):
+        
+        tk.Frame.__init__(self, parent, bg = 'SteelBlue1')
+        
+        self.text_box = Text(self, height = 20, width = 80, state=DISABLED, bg = 'SteelBlue1')
+        self.text_box.pack(pady =10, side = TOP, fill = Y, expand = False)
+        
+        button1 = tk.Button(self, text='Update my balance', command=lambda: self.reveal(controller))
+        button1.pack()
+        
+        button2 = tk.Button(self, text='Pay your friends back', command=lambda: controller.show_frame(PaybackPage))
+        button2.pack()
+        
+        button3 = tk.Button(self, text="Back to Menu",
+                           command=lambda: controller.show_frame(MenuPage))
+        button3.pack(pady=5, padx=5, side = BOTTOM, anchor=SW)
         
 class CreateProjectPage(tk.Frame):
 
